@@ -1403,17 +1403,36 @@ function parseNum(val) {
   }
 
   const upper = s.toUpperCase();
-  // Extrait le nombre : remplace , par . SAUF si c'est un séparateur de milliers
-  // FM26 : "4,8M" → 4.8 | "475K" → 475 | "1 200 000" → 1200000
   const clean = s.replace(/\s/g, '').replace(/[^0-9.,\-]/g, '');
-  // Si virgule est séparateur décimal (ex: "4,8") → remplace par point
   const num = parseFloat(clean.replace(',', '.'));
   if (isNaN(num)) return 0;
 
-  if (upper.includes('M'))  return num;           // 4.8M€ → 4.8
-  if (upper.includes('K'))  return num / 1000;    // 475K€ → 0.475
-  if (num > 1000000)        return num / 1000000; // 4800000 → 4.8
-  if (num > 1000)           return num / 1000;    // 4800 → 4.8
+  // Seulement convertir si suffixe EXPLICITE M ou K
+  if (upper.includes('M'))  return Math.round(num * 10) / 10;        // 4.8M€ → 4.8
+  if (upper.includes('K'))  return Math.round(num / 1000 * 1000) / 1000; // 475K€ → 0.475
+  // Sans suffixe : retourner tel quel (stats FM26 déjà dans la bonne unité)
+  return num;
+}
+
+// Valeurs monétaires (transfert) : retournées en M€
+function parseTransfert(val) {
+  if (!val || val === '—' || val === '-' || val === 'N/A') return 0;
+  const s = String(val).trim();
+
+  if (s.includes(' - ') || s.includes(' – ')) {
+    const parts = s.split(/\s*[-–]\s*/);
+    return Math.max(...parts.map(p => parseTransfert(p)));
+  }
+
+  const upper = s.toUpperCase();
+  const clean = s.replace(/\s/g, '').replace(/[^0-9.,\-]/g, '');
+  const num = parseFloat(clean.replace(',', '.'));
+  if (isNaN(num)) return 0;
+
+  if (upper.includes('M'))  return Math.round(num * 10) / 10;   // 4.8M€ → 4.8
+  if (upper.includes('K'))  return Math.round(num / 100) / 10;  // 475K€ → 0.475
+  if (num > 100000)         return Math.round(num / 100000) / 10; // 4800000 → 4.8
+  if (num > 100)            return Math.round(num / 100) / 10;   // 4800 → 4.8
   return num;
 }
 
@@ -1445,6 +1464,14 @@ function findColSalaire(row, candidates) {
   for (const c of candidates) {
     const key = Object.keys(row).find(k => k.trim().toLowerCase() === c.toLowerCase());
     if (key && row[key] !== '' && row[key] !== undefined) return parseSalaire(row[key]);
+  }
+  return 0;
+}
+
+function findColTransfert(row, candidates) {
+  for (const c of candidates) {
+    const key = Object.keys(row).find(k => k.trim().toLowerCase() === c.toLowerCase());
+    if (key && row[key] !== '' && row[key] !== undefined) return parseTransfert(row[key]);
   }
   return 0;
 }
@@ -1525,8 +1552,8 @@ const CSV_PROFILES = {
       pctPass:    findCol(r, ['% pas.', 'Taux de réussite des passes', '% Ra', '% Pass.', 'Pass %', 'Ps%']),
       cages:      findCol(r, ['Cln/90', 'Cages inviolées par 90 min. de jeu', 'Clean sheets/90', 'CS/90']),
       pctArrets:  findCol(r, ['% Ra', '% arrêts', 'Ratio d\'arrêts', 'Save %']),
-      transfert:  findCol(r, ['Montant transfert', 'Valeur', 'Value', 'Transfer Value']),
-      salaire:    findCol(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
+      transfert:  findColTransfert(r, ['Montant transfert', 'Valeur', 'Value', 'Transfer Value']),
+      salaire:    findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'rapportXg', label:'xGÉ (EG évités)',    w:25, bien:0.25,  ok:0,    insatisfaisant:-0.38 },
@@ -1557,7 +1584,7 @@ const CSV_PROFILES = {
       degag:    findCol(r, ['Dégagements/90', 'Dégagements', 'Deg', 'Dég']),
       interc:   findCol(r, ['Int', 'Interceptions/90', 'Interceptions']),
       tirsBloc: findCol(r, ['Tirs bloqués/90', 'Tirs bloqués', 'Blocks', 'Blocs']),
-      transfert:findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert:findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:  findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1587,7 +1614,7 @@ const CSV_PROFILES = {
       interc:    findCol(r, ['Int', 'Interceptions/90', 'Interceptions']),
       tirsBloc:  findCol(r, ['Tirs bloqués/90', 'Tirs bloqués', 'Blocks', 'Blocs']),
       passProg:  findCol(r, ['Passes progressives/90', 'Passes progressives', 'Prog', 'PrgP']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1617,7 +1644,7 @@ const CSV_PROFILES = {
       pressing:  findCol(r, ['Pressing effectué/90', 'Pressing', 'Press', 'Prss']),
       occasions: findCol(r, ['Occasions/90', 'Occasions', 'Chances', 'Occ']),
       passProg:  findCol(r, ['Passes progressives/90', 'Passes progressives', 'Prog', 'PrgP']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1647,7 +1674,7 @@ const CSV_PROFILES = {
       pressing:  findCol(r, ['Pressing effectué/90', 'Pressing', 'Press', 'Prss']),
       occasions: findCol(r, ['Occasions/90', 'Occasions', 'Chances', 'Occ']),
       dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1677,7 +1704,7 @@ const CSV_PROFILES = {
       blocs:    findCol(r, ['Blocs/90', 'Blocs', 'Blocks', 'Bloc']),
       pressing: findCol(r, ['Pressing effectué/90', 'Pressing', 'Press', 'Prss']),
       pctPass:  findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
-      transfert:findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert:findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:  findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1707,7 +1734,7 @@ const CSV_PROFILES = {
       xPassDec:  findCol(r, ['xPassesDéc/90', 'xPassesDec/90', 'xA', 'xAssists', 'xAG']),
       dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
       pctPass:   findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1737,7 +1764,7 @@ const CSV_PROFILES = {
       dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
       pctPass:   findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
       tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT', 'Tirs/90']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1767,7 +1794,7 @@ const CSV_PROFILES = {
       sprint:    findCol(r, ['Sprint', 'Distance Sprint', 'Sprints']),
       occFranch: findCol(r, ['Occasions Franches/90', 'Occasions Franches', 'Big Chances', 'Occ. Franches']),
       xAssists:  findCol(r, ['xAssists/90', 'xAssists', 'xA', 'xAG']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1797,7 +1824,7 @@ const CSV_PROFILES = {
       sprint:    findCol(r, ['Sprint', 'Distance Sprint', 'Sprints']),
       npxG:      findCol(r, ['Non-penalty xGoals/90', 'npxG', 'npxG/90', 'Non-penalty xG']),
       convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1827,7 +1854,7 @@ const CSV_PROFILES = {
       npxG:      findCol(r, ['Non-penalty xGoals/90', 'npxG', 'npxG/90']),
       tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT']),
       convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
@@ -1857,7 +1884,7 @@ const CSV_PROFILES = {
       npxG:      findCol(r, ['Non-penalty xGoals/90', 'npxG', 'npxG/90']),
       tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT']),
       convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
-      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      transfert: findColTransfert(r, ['Montant transfert', 'Valeur', 'Value']),
       salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
