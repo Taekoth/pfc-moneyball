@@ -930,12 +930,16 @@
   <div class="modal">
     <div class="modal-title">BUDGET TRANSFERTS</div>
     <div class="field">
-      <label>Budget total (M€)</label>
-      <input type="number" id="input-budget" placeholder="40" step="0.5">
+      <label>Budget transferts (M€)</label>
+      <input type="number" id="input-budget" placeholder="40" step="0.5" onkeydown="if(event.key==='Enter') saveBudget()">
+    </div>
+    <div class="field">
+      <label>Budget salaires/sem (k€)</label>
+      <input type="number" id="input-sal-budget" placeholder="500" step="1" onkeydown="if(event.key==='Enter') saveBudget()">
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;">
-      <button class="btn btn-primary" onclick="saveBudget()">SAUVEGARDER</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-budget')">ANNULER</button>
+      <button class="btn btn-primary" type="button" onclick="saveBudget()">SAUVEGARDER</button>
+      <button class="btn btn-ghost" type="button" onclick="closeModal('modal-budget')">ANNULER</button>
     </div>
   </div>
 </div>
@@ -1399,17 +1403,21 @@ function parseNum(val) {
   }
 
   const upper = s.toUpperCase();
-  const num = parseFloat(s.replace(/[^0-9.,\-]/g, '').replace(',', '.'));
+  // Extrait le nombre : remplace , par . SAUF si c'est un séparateur de milliers
+  // FM26 : "4,8M" → 4.8 | "475K" → 475 | "1 200 000" → 1200000
+  const clean = s.replace(/\s/g, '').replace(/[^0-9.,\-]/g, '');
+  // Si virgule est séparateur décimal (ex: "4,8") → remplace par point
+  const num = parseFloat(clean.replace(',', '.'));
   if (isNaN(num)) return 0;
 
-  if (upper.includes('M'))  return num;           // 4.8M€ → 4.8 M€
-  if (upper.includes('K'))  return num / 1000;    // 475K€ → 0.475 M€
-  if (num > 10000)          return num / 1000000; // 475000 → 0.475 M€
-  if (num > 100)            return num / 1000;    // 475 → 0.475 M€
+  if (upper.includes('M'))  return num;           // 4.8M€ → 4.8
+  if (upper.includes('K'))  return num / 1000;    // 475K€ → 0.475
+  if (num > 1000000)        return num / 1000000; // 4800000 → 4.8
+  if (num > 1000)           return num / 1000;    // 4800 → 4.8
   return num;
 }
 
-// Salaires : toujours retournés en k€/sem
+// Salaires FM26 : "5,5K € p/s" → 5.5 k€
 function parseSalaire(val) {
   if (!val || val === '—' || val === '-' || val === 'N/A') return 0;
   const s = String(val).trim();
@@ -1421,14 +1429,24 @@ function parseSalaire(val) {
   }
 
   const upper = s.toUpperCase();
-  // Retire tout sauf chiffres, virgule, point, signe
-  const num = parseFloat(s.replace(/[^0-9.,\-]/g, '').replace(',', '.'));
+  const clean = s.replace(/\s/g, '').replace(/[^0-9.,\-]/g, '');
+  const num = parseFloat(clean.replace(',', '.'));
   if (isNaN(num)) return 0;
 
-  if (upper.includes('M'))  return num * 1000;  // 1M€/sem → 1000 k€
-  if (upper.includes('K'))  return num;         // 5.5K€/sem → 5.5 k€
-  if (num > 1000)           return num / 1000;  // 5500 → 5.5 k€
-  return num;                                   // déjà en k€
+  if (upper.includes('M'))  return Math.round(num * 1000 * 10) / 10; // 1M → 1000k
+  if (upper.includes('K'))  return Math.round(num * 10) / 10;        // 5.5K → 5.5k
+  if (num > 10000)          return Math.round(num / 1000 * 10) / 10; // 5500 → 5.5k
+  if (num > 500)            return Math.round(num / 1000 * 10) / 10; // 5500 → 5.5k
+  return Math.round(num * 10) / 10;
+}
+
+// findColSalaire : utilise parseSalaire au lieu de parseNum
+function findColSalaire(row, candidates) {
+  for (const c of candidates) {
+    const key = Object.keys(row).find(k => k.trim().toLowerCase() === c.toLowerCase());
+    if (key && row[key] !== '' && row[key] !== undefined) return parseSalaire(row[key]);
+  }
+  return 0;
 }
 
 function findCol(row, candidates) {
@@ -1540,7 +1558,7 @@ const CSV_PROFILES = {
       interc:   findCol(r, ['Int', 'Interceptions/90', 'Interceptions']),
       tirsBloc: findCol(r, ['Tirs bloqués/90', 'Tirs bloqués', 'Blocks', 'Blocs']),
       transfert:findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:  parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:  findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'tacles',   label:'Tacles/90',       w:25, bien:2.38, ok:1.29, insatisfaisant:-0.38 },
@@ -1570,7 +1588,7 @@ const CSV_PROFILES = {
       tirsBloc:  findCol(r, ['Tirs bloqués/90', 'Tirs bloqués', 'Blocks', 'Blocs']),
       passProg:  findCol(r, ['Passes progressives/90', 'Passes progressives', 'Prog', 'PrgP']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'tacles',   label:'Tacles/90',          w:25, bien:2.34, ok:0.86, insatisfaisant:0.88 },
@@ -1600,7 +1618,7 @@ const CSV_PROFILES = {
       occasions: findCol(r, ['Occasions/90', 'Occasions', 'Chances', 'Occ']),
       passProg:  findCol(r, ['Passes progressives/90', 'Passes progressives', 'Prog', 'PrgP']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'tacles',    label:'Tacles/90',           w:25, bien:3.66, ok:2.75, insatisfaisant:1.44 },
@@ -1630,7 +1648,7 @@ const CSV_PROFILES = {
       occasions: findCol(r, ['Occasions/90', 'Occasions', 'Chances', 'Occ']),
       dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'tacles',    label:'Tacles/90',        w:20, bien:3.29, ok:2.89, insatisfaisant:1.57 },
@@ -1660,7 +1678,7 @@ const CSV_PROFILES = {
       pressing: findCol(r, ['Pressing effectué/90', 'Pressing', 'Press', 'Prss']),
       pctPass:  findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
       transfert:findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:  parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:  findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'tacles',   label:'Tacles/90',        w:25, bien:2.16, ok:1.17, insatisfaisant:1.17 },
@@ -1690,7 +1708,7 @@ const CSV_PROFILES = {
       dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
       pctPass:   findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'passeCles', label:'Passes Clés/90',     w:25, bien:1.85, ok:0.19, insatisfaisant:0.76 },
@@ -1720,7 +1738,7 @@ const CSV_PROFILES = {
       pctPass:   findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
       tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT', 'Tirs/90']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'passeCles', label:'Passes Clés/90',   w:25, bien:1.81, ok:0.75, insatisfaisant:0.75 },
@@ -1750,7 +1768,7 @@ const CSV_PROFILES = {
       occFranch: findCol(r, ['Occasions Franches/90', 'Occasions Franches', 'Big Chances', 'Occ. Franches']),
       xAssists:  findCol(r, ['xAssists/90', 'xAssists', 'xA', 'xAG']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'dribbles',  label:'Dribbles/90',        w:25, bien:4.69, ok:1.05, insatisfaisant:1.05 },
@@ -1780,7 +1798,7 @@ const CSV_PROFILES = {
       npxG:      findCol(r, ['Non-penalty xGoals/90', 'npxG', 'npxG/90', 'Non-penalty xG']),
       convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'dribbles',  label:'Dribbles/90',     w:20, bien:4.6,  ok:3.01, insatisfaisant:1.05 },
@@ -1810,7 +1828,7 @@ const CSV_PROFILES = {
       tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT']),
       convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'tetes',     label:'Têtes remport./90', w:15, bien:2.4,  ok:1.55, insatisfaisant:0.67 },
@@ -1840,7 +1858,7 @@ const CSV_PROFILES = {
       tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT']),
       convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
       transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
-      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+      salaire:   findColSalaire(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
     }),
     seuils: [
       { key:'tetes',     label:'Têtes remport./90', w:15, bien:3.01, ok:2.76, insatisfaisant:1.09 },
@@ -1887,7 +1905,15 @@ function importCSV(input) {
     });
     const scored = computeMoneyballCSV(rows);
     renderCSVTable(headers, scored);
-    showNotif(`${rows.length} joueurs importés & scorés`);
+
+    // Auto-ajout shortlist pour les scores >= 90
+    const elites = scored.filter(d => d.score >= 90);
+    if (elites.length) {
+      elites.forEach(d => quickAddCSV(d));
+      showNotif(`${rows.length} joueurs scorés · ${elites.length} élite(s) 90+ auto-ajouté(s) ⭐`);
+    } else {
+      showNotif(`${rows.length} joueurs importés & scorés`);
+    }
   };
   reader.readAsText(file, 'utf-8');
 }
@@ -1921,9 +1947,12 @@ function renderCSVTable(headers, scored) {
           const barColor = tier==='S' ? 'var(--green)' : tier==='A' ? 'var(--accent2)' : tier==='B' ? 'var(--accent)' : 'var(--red)';
           const safe = encodeURIComponent(JSON.stringify(d));
           const dispCols = profile.display(d).map(c => `<td style="color:var(--muted);">${c.val ?? '—'}</td>`).join('');
-          return `<tr>
+          const isElite = d.score >= 90;
+          const rowStyle = isElite ? 'background:rgba(74,255,140,0.05);border-left:3px solid var(--green);' : '';
+          const eliteBadge = isElite ? `<span style="background:rgba(74,255,140,0.2);color:var(--green);border:1px solid var(--green);padding:1px 6px;border-radius:3px;font-size:9px;letter-spacing:1px;margin-left:6px;">⭐ AUTO</span>` : '';
+          return `<tr style="${rowStyle}">
             <td style="color:var(--muted);">${i+1}</td>
-            <td style="font-weight:500;">${nom}</td>
+            <td style="font-weight:500;">${nom}${eliteBadge}</td>
             <td>
               <div style="display:flex;align-items:center;gap:8px;">
                 <span class="score-circle score-${tier}" style="width:32px;height:32px;font-size:13px;">${d.score}</span>
@@ -1961,6 +1990,11 @@ function quickAddCSV(raw) {
   const poste = d.row['Poste'] || d.row['Position'] || profile.poste;
   const age = parseInt(d.row['Âge'] || d.row['Age'] || '') || 0;
   const tier = d.score >= 80 ? 'S' : d.score >= 65 ? 'A' : d.score >= 50 ? 'B' : d.score >= 35 ? 'C' : 'D';
+
+  // Anti-doublon : ne pas ajouter si même nom + même poste déjà présent
+  const exists = state.shortlist.some(p => p.nom.toLowerCase() === nom.toLowerCase() && p.poste === poste);
+  if (exists) { showNotif(`${nom} déjà dans la shortlist`, true); return; }
+
   state.shortlist.push({
     id: Date.now(), nom, poste, age,
     club: d.row['Club'] || d.row['Équipe'] || '—',
@@ -2277,13 +2311,19 @@ function fmt(n) { return n >= 1 ? n.toFixed(1) + ' M€' : (n*1000).toFixed(0) +
 // ===================== BUDGET =====================
 function saveBudget() {
   const val = parseFloat(document.getElementById('input-budget').value);
-  if (isNaN(val)) { showNotif('Valeur invalide', true); return; }
-  state.budget = val;
+  const salVal = parseFloat(document.getElementById('input-sal-budget').value);
+  if (isNaN(val) && isNaN(salVal)) { showNotif('Renseigne au moins un budget', true); return; }
+  if (!isNaN(val)) state.budget = val;
+  if (!isNaN(salVal)) {
+    // Pré-remplit aussi le champ salaire de la page Budget
+    const salEl = document.getElementById('sal-budget');
+    if (salEl) { salEl.value = salVal; }
+  }
   saveState();
   updateHeaderBudget();
   updateBudgetPage();
   closeModal('modal-budget');
-  showNotif('Budget mis à jour');
+  showNotif('Budget sauvegardé');
 }
 
 function updateHeaderBudget() {
@@ -2403,7 +2443,11 @@ function saveAssignments() {
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   if (id === 'modal-assign') openAssignModal();
-  if (id === 'modal-budget' && state.budget) document.getElementById('input-budget').value = state.budget;
+  if (id === 'modal-budget') {
+    if (state.budget) document.getElementById('input-budget').value = state.budget;
+    const salEl = document.getElementById('sal-budget');
+    if (salEl && salEl.value) document.getElementById('input-sal-budget').value = salEl.value;
+  }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
