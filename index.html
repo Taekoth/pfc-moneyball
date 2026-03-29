@@ -1,0 +1,2625 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paris FC · Moneyball Scout</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #10141c;
+    --surface2: #161b26;
+    --border: #1e2535;
+    --accent: #e8c840;
+    --accent2: #4a9eff;
+    --red: #ff4a4a;
+    --green: #4aff8c;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --pfc-blue: #1a3a6b;
+    --pfc-red: #c8102e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--pfc-blue) 0%, #0d1f3c 60%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(232,200,64,0.4);
+    white-space: nowrap;
+  }
+
+  .logo span { color: var(--pfc-red); }
+
+  .subtitle {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-left: 1px solid var(--border);
+    padding-left: 20px;
+  }
+
+  /* BUDGET BAR */
+  .budget-bar {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .budget-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .budget-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .budget-value { font-size: 16px; font-weight: 500; color: var(--accent); font-family: 'Bebas Neue'; letter-spacing: 1px; }
+  .budget-value.spent { color: var(--red); }
+  .budget-value.avail { color: var(--green); }
+
+  /* TABS */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    padding: 0 24px;
+    gap: 2px;
+  }
+
+  .tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* MAIN LAYOUT */
+  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* SECTION TITLES */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .section-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+  }
+
+  .card-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  /* POSTE BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+
+  .badge-gk { background: rgba(232,200,64,0.15); color: var(--accent); border: 1px solid rgba(232,200,64,0.3); }
+  .badge-def { background: rgba(74,158,255,0.15); color: var(--accent2); border: 1px solid rgba(74,158,255,0.3); }
+  .badge-mid { background: rgba(74,255,140,0.12); color: var(--green); border: 1px solid rgba(74,255,140,0.3); }
+  .badge-att { background: rgba(255,74,74,0.15); color: var(--red); border: 1px solid rgba(255,74,74,0.3); }
+
+  /* SCORE METER */
+  .score-bar-wrap { margin: 4px 0; }
+  .score-bar-label { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 10px; color: var(--muted); }
+  .score-bar-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 2px; transition: width .5s ease; }
+
+  /* INPUTS */
+  input, select, textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    width: 100%;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  input:focus, select:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  select option { background: var(--surface2); }
+
+  label { font-size: 10px; color: var(--muted); letter-spacing: 1px; display: block; margin-bottom: 4px; }
+
+  .field { margin-bottom: 12px; }
+
+  /* BUTTONS */
+  .btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .btn-primary { background: var(--accent); color: #000; font-weight: 500; }
+  .btn-primary:hover { background: #f0d040; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(255,74,74,0.3); }
+  .btn-danger:hover { background: rgba(255,74,74,0.1); }
+  .btn-sm { padding: 4px 12px; font-size: 10px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(30,37,53,0.6); font-size: 12px; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  tr:last-child td { border-bottom: none; }
+
+  /* SCORE CIRCLE */
+  .score-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue';
+    font-size: 18px;
+    letter-spacing: 1px;
+  }
+
+  .score-S { background: rgba(74,255,140,0.2); color: var(--green); border: 2px solid var(--green); }
+  .score-A { background: rgba(74,158,255,0.2); color: var(--accent2); border: 2px solid var(--accent2); }
+  .score-B { background: rgba(232,200,64,0.2); color: var(--accent); border: 2px solid var(--accent); }
+  .score-C { background: rgba(255,74,74,0.15); color: var(--red); border: 2px solid var(--red); }
+  .score-D { background: rgba(107,114,128,0.2); color: var(--muted); border: 2px solid var(--muted); }
+
+  /* FORMATION VISUAL */
+  .formation-pitch {
+    background: linear-gradient(180deg, #1a3a1a 0%, #1e4020 50%, #1a3a1a 100%);
+    border: 2px solid #2a5a2a;
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .pitch-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .pitch-player {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 6px 10px;
+    text-align: center;
+    min-width: 70px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .pitch-player:hover { border-color: var(--accent); background: rgba(232,200,64,0.1); }
+  .pitch-player.filled { border-color: var(--green); }
+  .pitch-player.needed { border-color: var(--red); animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { border-color: var(--red); }
+    50% { border-color: rgba(255,74,74,0.3); }
+  }
+
+  .pitch-pos { font-size: 9px; letter-spacing: 1px; color: var(--muted); }
+  .pitch-name { font-size: 10px; color: var(--text); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px; }
+
+  /* MERCATO TAGS */
+  .tag-achat { background: rgba(74,255,140,0.15); color: var(--green); border: 1px solid rgba(74,255,140,0.3); padding: 2px 8px; border-radius: 3px; font-size: 10px; }
+  .tag-vente { background: rgba(255,74,74,0.15); color: var(--red); border: 1px solid rgba(255,74,74,0.3); padding: 2px 8px; border-radius: 3px; font-size: 10px; }
+  .tag-pret { background: rgba(74,158,255,0.15); color: var(--accent2); border: 1px solid rgba(74,158,255,0.3); padding: 2px 8px; border-radius: 3px; font-size: 10px; }
+  .tag-libre { background: rgba(232,200,64,0.15); color: var(--accent); border: 1px solid rgba(232,200,64,0.3); padding: 2px 8px; border-radius: 3px; font-size: 10px; }
+
+  /* STAT GRID (scoring) */
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat-input-wrap { position: relative; }
+  .stat-weight { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 9px; color: var(--accent); pointer-events: none; }
+
+  /* BIG NUMBER */
+  .big-num {
+    font-family: 'Bebas Neue';
+    font-size: 48px;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  /* SHORTLIST priority */
+  .prio-1 { color: var(--red); }
+  .prio-2 { color: var(--accent); }
+  .prio-3 { color: var(--muted); }
+
+  /* CSV ZONE */
+  .csv-drop {
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .csv-drop:hover { border-color: var(--accent); background: rgba(232,200,64,0.05); }
+  .csv-drop-icon { font-size: 32px; margin-bottom: 8px; }
+  .csv-drop-text { color: var(--muted); font-size: 11px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    width: 600px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue';
+    font-size: 24px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  /* NOTIFICATION */
+  .notif {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all .3s;
+    z-index: 9999;
+  }
+
+  .notif.show { opacity: 1; transform: translateY(0); }
+
+  /* COMPARE */
+  .compare-col {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .compare-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .compare-stat-name { width: 60px; font-size: 10px; color: var(--muted); }
+  .compare-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .compare-bar { height: 100%; border-radius: 3px; transition: width .4s; }
+  .compare-val { width: 28px; text-align: right; font-size: 11px; }
+  .compare-winner { color: var(--green); font-weight: 500; }
+  .compare-loser { color: var(--muted); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    header { flex-wrap: wrap; height: auto; padding: 12px; gap: 8px; }
+    .budget-bar { margin-left: 0; width: 100%; justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PARIS <span>FC</span> · SCOUT</div>
+  <div class="subtitle">Moneyball FM26 · Ligue 1</div>
+  <div class="budget-bar">
+    <div class="budget-item">
+      <span class="budget-label">Budget Total</span>
+      <span class="budget-value" id="hdr-budget">—</span>
+    </div>
+    <div class="budget-item">
+      <span class="budget-label">Dépensé</span>
+      <span class="budget-value spent" id="hdr-spent">0 M€</span>
+    </div>
+    <div class="budget-item">
+      <span class="budget-label">Disponible</span>
+      <span class="budget-value avail" id="hdr-avail">—</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('modal-budget')">⚙</button>
+  </div>
+</header>
+
+<nav>
+  <div class="tab active" onclick="switchTab('scoring')">🎯 Scoring</div>
+  <div class="tab" onclick="switchTab('shortlist')">⭐ Shortlist</div>
+  <div class="tab" onclick="switchTab('compare')">⚖ Comparer</div>
+  <div class="tab" onclick="switchTab('effectif')">👥 Effectif</div>
+  <div class="tab" onclick="switchTab('mercato')">💸 Mercato</div>
+  <div class="tab" onclick="switchTab('budget')">📊 Budget</div>
+  <div class="tab" onclick="switchTab('formation')">🗺 Formation</div>
+</nav>
+
+<main>
+
+<!-- ==================== SCORING ==================== -->
+<div class="page active" id="page-scoring">
+  <div class="section-title">SCORING MONEYBALL</div>
+  <div class="section-sub">ÉVALUEZ UN JOUEUR PAR POSTE · IMPORT CSV DISPONIBLE</div>
+
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="card">
+      <div class="card-title">Profil joueur</div>
+      <div class="field">
+        <label>Nom</label>
+        <input type="text" id="sc-name" placeholder="Ex: Sofiane Diop">
+      </div>
+      <div class="field">
+        <label>Poste principal</label>
+        <select id="sc-poste" onchange="loadPosteStats()">
+          <option value="">— Sélectionner —</option>
+          <optgroup label="Gardien">
+            <option value="GAP">GAP — Gardien avec Ballon</option>
+            <option value="GB">GB — Gardien sans Ballon</option>
+          </optgroup>
+          <optgroup label="Défenseurs">
+            <option value="DCA">DCA — Défenseur Central (Appui)</option>
+            <option value="DCP">DCP — Défenseur Central (Pressing)</option>
+            <option value="AL">AL — Arrière Latéral</option>
+            <option value="LOA">LOA — Latéral Offensif (Appui)</option>
+          </optgroup>
+          <optgroup label="Milieux">
+            <option value="MdC">MdC — Milieu de Contrôle</option>
+            <option value="MD">MD — Milieu Défensif</option>
+          </optgroup>
+          <optgroup label="Attaquants">
+            <option value="Ail">Ail — Ailier</option>
+            <option value="MO">MO — Meneur de Jeu</option>
+            <option value="Atl">Atl — Attaquant de Liaison</option>
+            <option value="AdC">AdC — Attaquant de Centre</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field">
+        <label>Âge</label>
+        <input type="number" id="sc-age" placeholder="23" min="15" max="40">
+      </div>
+      <div class="field">
+        <label>Valeur marchande (M€)</label>
+        <input type="number" id="sc-valeur" placeholder="8.5" step="0.1">
+      </div>
+      <div class="field">
+        <label>Salaire/sem (k€)</label>
+        <input type="number" id="sc-salaire" placeholder="35" step="1">
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn btn-primary" onclick="computeScore()">CALCULER</button>
+        <button class="btn btn-ghost" onclick="clearScoring()">RESET</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Résultat</div>
+      <div id="score-result" style="text-align:center;padding:40px 0;color:var(--muted);font-size:11px;">
+        Remplissez le formulaire et cliquez sur Calculer
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="stats-form-card" style="display:none;">
+    <div class="card-title" id="stats-form-title">Statistiques</div>
+    <div class="stat-grid" id="stats-form"></div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <div class="card">
+      <div class="card-title">Import CSV FM26</div>
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+        <label style="margin:0;white-space:nowrap;">Profil de scoring</label>
+        <select id="csv-poste-mode" style="width:260px;">
+          <option value="gk">🧤 Gardien</option>
+          <option value="dc">🛡 Défenseur Central</option>
+          <option value="dcr">🛡 Défenseur Relanceur</option>
+          <option value="al">↔ Arrière Latéral</option>
+          <option value="loa">↗ Latéral Offensif</option>
+          <option value="md">⚙ Milieu Défensif</option>
+          <option value="mc">🎯 Milieu Créateur</option>
+          <option value="mo">✨ Milieu Offensif</option>
+          <option value="ailpd">⚡ Ailier Passeur/Dribbleur</option>
+          <option value="ailfb">🔥 Ailier Finisseur/Buteur</option>
+          <option value="atl">🤝 Attaquant Soutien</option>
+          <option value="adc">⚽ Attaquant Finisseur</option>
+        </select>
+        <div id="csv-formula-hint" style="font-size:10px;color:var(--muted);letter-spacing:1px;"></div>
+      </div>
+      <div class="grid-2" style="gap:12px;">
+        <div>
+          <div class="csv-drop" id="csv-drop" onclick="document.getElementById('csv-input').click()">
+            <div class="csv-drop-icon">📁</div>
+            <div class="csv-drop-text">Cliquer ou glisser un fichier CSV exporté depuis FM26<br><span style="font-size:10px;color:var(--border);">Vue Joueurs → Exporter → HTML/CSV</span></div>
+          </div>
+          <input type="file" id="csv-input" accept=".csv,.html" style="display:none;" onchange="importCSV(this)">
+        </div>
+        <div>
+          <div class="card-title">Colonnes détectées</div>
+          <div id="csv-cols" style="color:var(--muted);font-size:11px;">—</div>
+        </div>
+      </div>
+      <div id="csv-table-wrap" style="margin-top:16px;overflow-x:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SHORTLIST ==================== -->
+<div class="page" id="page-shortlist">
+  <div class="section-title">SHORTLIST</div>
+  <div class="section-sub">CIBLES DE RECRUTEMENT · PRIORITÉS & STATUTS</div>
+
+  <div style="display:flex;gap:12px;margin-bottom:16px;align-items:center;">
+    <button class="btn btn-primary" onclick="openModal('modal-add-shortlist')">+ AJOUTER CIBLE</button>
+    <select id="sl-filter-poste" onchange="renderShortlist()" style="width:160px;">
+      <option value="">Tous postes</option>
+      <option value="GAP">GAP</option><option value="GB">GB</option>
+      <option value="DCA">DCA</option><option value="DCP">DCP</option>
+      <option value="AL">AL</option><option value="LOA">LOA</option>
+      <option value="MdC">MdC</option><option value="MD">MD</option>
+      <option value="Ail">Ail</option><option value="MO">MO</option>
+      <option value="Atl">Atl</option><option value="AdC">AdC</option>
+    </select>
+    <select id="sl-filter-prio" onchange="renderShortlist()" style="width:140px;">
+      <option value="">Toutes priorités</option>
+      <option value="1">🔴 Priorité 1</option>
+      <option value="2">🟡 Priorité 2</option>
+      <option value="3">⚪ Priorité 3</option>
+    </select>
+    <input type="text" id="sl-search" placeholder="Rechercher..." style="width:200px;" oninput="renderShortlist()">
+    <button class="btn btn-danger btn-sm" onclick="clearShortlist()" style="margin-left:auto;">✕ VIDER</button>
+  </div>
+
+  <div class="card" style="overflow-x:auto;">
+    <table id="shortlist-table">
+      <thead>
+        <tr>
+          <th>PRIO</th>
+          <th>JOUEUR</th>
+          <th>POSTE</th>
+          <th>ÂGE</th>
+          <th>CLUB ACTUEL</th>
+          <th>VALEUR</th>
+          <th>SALAIRE/SEM</th>
+          <th>SCORE MB</th>
+          <th>STATUT</th>
+          <th>NOTES</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="shortlist-body">
+        <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:40px;">Aucune cible ajoutée</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== COMPARE ==================== -->
+<div class="page" id="page-compare">
+  <div class="section-title">COMPARATEUR</div>
+  <div class="section-sub">ANALYSE CÔTE À CÔTE · SHORTLIST & EFFECTIF</div>
+
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div class="card">
+      <div class="card-title">Joueur A</div>
+      <select id="cmp-a-source" onchange="updateCompareSelects()" style="margin-bottom:8px;">
+        <option value="shortlist">⭐ Shortlist</option>
+        <option value="effectif">👥 Effectif</option>
+      </select>
+      <select id="cmp-a" onchange="renderCompare()" style="margin-bottom:8px;">
+        <option value="">— Sélectionner —</option>
+      </select>
+      <div id="cmp-a-tag" style="margin-top:4px;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Joueur B</div>
+      <select id="cmp-b-source" onchange="updateCompareSelects()" style="margin-bottom:8px;">
+        <option value="shortlist">⭐ Shortlist</option>
+        <option value="effectif" selected>👥 Effectif</option>
+      </select>
+      <select id="cmp-b" onchange="renderCompare()" style="margin-bottom:8px;">
+        <option value="">— Sélectionner —</option>
+      </select>
+      <div id="cmp-b-tag" style="margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <div class="card" id="compare-result">
+    <div style="text-align:center;padding:40px;color:var(--muted);font-size:11px;">
+      Sélectionnez deux joueurs pour comparer
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MERCATO ==================== -->
+<div class="page" id="page-mercato">
+  <div class="section-title">MERCATO</div>
+  <div class="section-sub">ACHATS · VENTES · PRÊTS</div>
+
+  <div style="display:flex;gap:12px;margin-bottom:16px;">
+    <button class="btn btn-primary" onclick="openModal('modal-add-mercato')">+ OPÉRATION</button>
+    <select id="mc-filter" onchange="renderMercato()" style="width:160px;">
+      <option value="">Toutes</option>
+      <option value="achat">Achats</option>
+      <option value="vente">Ventes</option>
+      <option value="pret">Prêts IN</option>
+      <option value="libre">Libres</option>
+    </select>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:16px;">
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Entrées</div>
+      <div class="big-num" style="color:var(--red);" id="mc-total-in">0 M€</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Sorties</div>
+      <div class="big-num" style="color:var(--green);" id="mc-total-out">0 M€</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Balance</div>
+      <div class="big-num" id="mc-balance">0 M€</div>
+    </div>
+  </div>
+
+  <div class="card" style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>TYPE</th>
+          <th>JOUEUR</th>
+          <th>POSTE</th>
+          <th>ÂGE</th>
+          <th>CLUB</th>
+          <th>MONTANT</th>
+          <th>SALAIRE/SEM</th>
+          <th>DATE</th>
+          <th>NOTES</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="mercato-body">
+        <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:40px;">Aucune opération enregistrée</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== BUDGET ==================== -->
+<div class="page" id="page-budget">
+  <div class="section-title">BUDGET & FINANCES</div>
+  <div class="section-sub">SUIVI DES DÉPENSES · CALCULATEUR VALEUR MARCHANDE</div>
+
+  <div class="grid-4" style="margin-bottom:20px;">
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Budget transferts</div>
+      <div class="big-num" style="color:var(--accent);" id="bgt-total">—</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Dépensé</div>
+      <div class="big-num" style="color:var(--red);" id="bgt-spent">0 M€</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Rentré</div>
+      <div class="big-num" style="color:var(--green);" id="bgt-in">0 M€</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Restant</div>
+      <div class="big-num" id="bgt-left">—</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Masse salariale</div>
+      <div class="field">
+        <label>Budget salaire/sem total (k€)</label>
+        <input type="number" id="sal-budget" placeholder="500" oninput="updateSalaires()">
+      </div>
+      <div id="sal-bar-wrap">
+        <div class="score-bar-label">
+          <span>Masse engagée</span>
+          <span id="sal-pct">0%</span>
+        </div>
+        <div class="score-bar-track" style="height:8px;margin-bottom:12px;">
+          <div class="score-bar-fill" id="sal-bar" style="width:0%;background:var(--accent);"></div>
+        </div>
+      </div>
+      <div id="sal-detail" style="font-size:11px;color:var(--muted);">Enregistrez des joueurs dans le Mercato pour voir leur masse salariale.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Calculateur prix de vente</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Estime le prix de vente selon le profil Moneyball (valeur marché + prime performance)</p>
+      <div class="field">
+        <label>Valeur marchande actuelle (M€)</label>
+        <input type="number" id="pv-vm" placeholder="10" step="0.5" oninput="calcPrixVente()">
+      </div>
+      <div class="field">
+        <label>Score Moneyball (0–100)</label>
+        <input type="number" id="pv-score" placeholder="72" min="0" max="100" oninput="calcPrixVente()">
+      </div>
+      <div class="field">
+        <label>Âge</label>
+        <input type="number" id="pv-age" placeholder="24" min="15" max="40" oninput="calcPrixVente()">
+      </div>
+      <div class="field">
+        <label>Contrat restant (années)</label>
+        <input type="number" id="pv-contrat" placeholder="2" min="0" max="6" step="0.5" oninput="calcPrixVente()">
+      </div>
+      <div id="pv-result" style="margin-top:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FORMATION ==================== -->
+<div class="page" id="page-formation">
+  <div class="section-title">FORMATION 5-2-3</div>
+  <div class="section-sub">VUE D'ENSEMBLE DE L'EFFECTIF SUR LE TERRAIN</div>
+
+  <div class="grid-2">
+    <div>
+      <div style="font-size:10px;letter-spacing:2px;color:var(--accent);margin-bottom:8px;">AVEC LE BALLON</div>
+      <div class="formation-pitch" id="pitch-avec">
+        <div class="pitch-row" id="pr-adc"></div>
+        <div class="pitch-row" id="pr-atl"></div>
+        <div class="pitch-row" id="pr-mdc"></div>
+        <div class="pitch-row" id="pr-loa"></div>
+        <div class="pitch-row" id="pr-dc"></div>
+        <div class="pitch-row" id="pr-gap"></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;letter-spacing:2px;color:var(--accent);margin-bottom:8px;">SANS LE BALLON</div>
+      <div class="formation-pitch">
+        <div class="pitch-row">
+          <div class="pitch-player" style="min-width:80px;">
+            <div class="pitch-pos">AIL G</div>
+            <div class="pitch-name" id="sb-ail-g">—</div>
+          </div>
+          <div class="pitch-player" style="min-width:80px;">
+            <div class="pitch-pos">MO</div>
+            <div class="pitch-name" id="sb-mo">—</div>
+          </div>
+          <div class="pitch-player" style="min-width:80px;">
+            <div class="pitch-pos">AIL D</div>
+            <div class="pitch-name" id="sb-ail-d">—</div>
+          </div>
+        </div>
+        <div class="pitch-row">
+          <div class="pitch-player"><div class="pitch-pos">MD G</div><div class="pitch-name" id="sb-md-g">—</div></div>
+          <div class="pitch-player"><div class="pitch-pos">MD D</div><div class="pitch-name" id="sb-md-d">—</div></div>
+        </div>
+        <div class="pitch-row">
+          <div class="pitch-player"><div class="pitch-pos">AL G</div><div class="pitch-name" id="sb-al-g">—</div></div>
+          <div class="pitch-player"><div class="pitch-pos">DC G</div><div class="pitch-name" id="sb-dc-g2">—</div></div>
+          <div class="pitch-player"><div class="pitch-pos">DC C</div><div class="pitch-name" id="sb-dc-c2">—</div></div>
+          <div class="pitch-player"><div class="pitch-pos">DC D</div><div class="pitch-name" id="sb-dc-d2">—</div></div>
+          <div class="pitch-player"><div class="pitch-pos">AL D</div><div class="pitch-name" id="sb-al-d">—</div></div>
+        </div>
+        <div class="pitch-row">
+          <div class="pitch-player" style="min-width:80px;"><div class="pitch-pos">GB</div><div class="pitch-name" id="sb-gb">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;" class="card">
+    <div class="card-title">Assigner les joueurs</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Assignez des joueurs de la shortlist aux postes de la formation.</p>
+    <button class="btn btn-primary" onclick="openModal('modal-assign')">ASSIGNER JOUEURS</button>
+  </div>
+</div>
+
+<!-- ==================== EFFECTIF ==================== -->
+<div class="page" id="page-effectif">
+  <div class="section-title">EFFECTIF</div>
+  <div class="section-sub">JOUEURS ACTUELS DU CLUB · IMPORT CSV · COMPARAISON AVEC LA SHORTLIST</div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-title">Import CSV Effectif FM26</div>
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <label style="margin:0;white-space:nowrap;">Profil de scoring</label>
+      <select id="eff-poste-mode" style="width:260px;">
+        <option value="gk">🧤 Gardien</option>
+          <option value="dc">🛡 Défenseur Central</option>
+          <option value="dcr">🛡 Défenseur Relanceur</option>
+          <option value="al">↔ Arrière Latéral</option>
+          <option value="loa">↗ Latéral Offensif</option>
+          <option value="md">⚙ Milieu Défensif</option>
+          <option value="mc">🎯 Milieu Créateur</option>
+          <option value="mo">✨ Milieu Offensif</option>
+          <option value="ailpd">⚡ Ailier Passeur/Dribbleur</option>
+          <option value="ailfb">🔥 Ailier Finisseur/Buteur</option>
+          <option value="atl">🤝 Attaquant Soutien</option>
+          <option value="adc">⚽ Attaquant Finisseur</option>
+      </select>
+      <span style="font-size:10px;color:var(--muted);">Même formule que le Scoring CSV</span>
+    </div>
+    <div class="grid-2" style="gap:12px;">
+      <div>
+        <div class="csv-drop" onclick="document.getElementById('eff-csv-input').click()">
+          <div class="csv-drop-icon">👥</div>
+          <div class="csv-drop-text">Importer l'effectif actuel (CSV FM26)<br><span style="font-size:10px;color:var(--border);">Vue Joueurs de ton club → Exporter</span></div>
+        </div>
+        <input type="file" id="eff-csv-input" accept=".csv,.html" style="display:none;" onchange="importEffectif(this)">
+      </div>
+      <div>
+        <div class="card-title">Colonnes détectées</div>
+        <div id="eff-csv-cols" style="color:var(--muted);font-size:11px;">—</div>
+        <div style="margin-top:16px;">
+          <div class="card-title">Résumé effectif</div>
+          <div id="eff-summary" style="color:var(--muted);font-size:11px;">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+    <input type="text" id="eff-search" placeholder="Rechercher un joueur…" style="width:200px;" oninput="renderEffectif()">
+    <select id="eff-filter-poste" onchange="renderEffectif()" style="width:160px;">
+      <option value="">Tous postes</option>
+      <option value="GAP">GAP</option><option value="GB">GB</option>
+      <option value="DCA">DCA</option><option value="DCP">DCP</option>
+      <option value="AL">AL</option><option value="LOA">LOA</option>
+      <option value="MdC">MdC</option><option value="MD">MD</option>
+      <option value="Ail">Ail</option><option value="MO">MO</option>
+      <option value="Atl">Atl</option><option value="AdC">AdC</option>
+    </select>
+    <select id="eff-sort" onchange="renderEffectif()" style="width:160px;">
+      <option value="score">Trier par score</option>
+      <option value="nom">Trier par nom</option>
+      <option value="age">Trier par âge</option>
+      <option value="valeur">Trier par valeur</option>
+    </select>
+    <button class="btn btn-danger btn-sm" onclick="clearEffectif()">✕ EFFACER</button>
+  </div>
+
+  <!-- Tableau effectif -->
+  <div class="card" style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>JOUEUR</th>
+          <th>POSTE</th>
+          <th>ÂGE</th>
+          <th>SCORE MB</th>
+          <th>VALEUR</th>
+          <th>SALAIRE</th>
+          <th>VS SHORTLIST</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="effectif-body">
+        <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px;">Importez votre effectif via CSV</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Comparaison effectif vs shortlist -->
+  <div class="card" style="margin-top:20px;" id="eff-compare-card">
+    <div class="card-title">Comparaison Effectif vs Shortlist</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Joueurs de la shortlist avec un score supérieur au meilleur de l'effectif au même poste.</div>
+    <div id="eff-compare-body" style="color:var(--muted);font-size:11px;">Importez l'effectif pour voir les opportunités d'amélioration.</div>
+  </div>
+</div>
+
+</main>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- BUDGET CONFIG -->
+<div class="modal-overlay" id="modal-budget">
+  <div class="modal">
+    <div class="modal-title">BUDGET TRANSFERTS</div>
+    <div class="field">
+      <label>Budget total (M€)</label>
+      <input type="number" id="input-budget" placeholder="40" step="0.5">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary" onclick="saveBudget()">SAUVEGARDER</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-budget')">ANNULER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SHORTLIST -->
+<div class="modal-overlay" id="modal-add-shortlist">
+  <div class="modal">
+    <div class="modal-title">AJOUTER CIBLE</div>
+    <div class="grid-2">
+      <div class="field"><label>Nom</label><input type="text" id="sl-nom" placeholder="Nom du joueur"></div>
+      <div class="field"><label>Poste</label>
+        <select id="sl-poste">
+          <option value="GAP">GAP</option><option value="GB">GB</option>
+          <option value="DCA">DCA</option><option value="DCP">DCP</option>
+          <option value="AL">AL</option><option value="LOA">LOA</option>
+          <option value="MdC">MdC</option><option value="MD">MD</option>
+          <option value="Ail">Ail</option><option value="MO">MO</option>
+          <option value="Atl">Atl</option><option value="AdC">AdC</option>
+        </select>
+      </div>
+      <div class="field"><label>Âge</label><input type="number" id="sl-age" placeholder="24"></div>
+      <div class="field"><label>Club actuel</label><input type="text" id="sl-club" placeholder="Club"></div>
+      <div class="field"><label>Valeur marchande (M€)</label><input type="number" id="sl-val" placeholder="8" step="0.5"></div>
+      <div class="field"><label>Salaire/sem (k€)</label><input type="number" id="sl-sal" placeholder="30"></div>
+      <div class="field"><label>Score Moneyball (0–100)</label><input type="number" id="sl-score" placeholder="—" min="0" max="100"></div>
+      <div class="field"><label>Priorité</label>
+        <select id="sl-prio">
+          <option value="1">🔴 Priorité 1 — Indispensable</option>
+          <option value="2">🟡 Priorité 2 — Souhaitable</option>
+          <option value="3">⚪ Priorité 3 — Option</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Statut</label>
+      <select id="sl-statut">
+        <option value="cible">🎯 Cible identifiée</option>
+        <option value="contact">📞 Contact établi</option>
+        <option value="negociation">🤝 Négociation</option>
+        <option value="signe">✅ Signé</option>
+        <option value="echec">❌ Échec</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="sl-notes" rows="2" placeholder="Observations scouting…" style="resize:vertical;"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary" onclick="addShortlist()">AJOUTER</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-shortlist')">ANNULER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MERCATO -->
+<div class="modal-overlay" id="modal-add-mercato">
+  <div class="modal">
+    <div class="modal-title">NOUVELLE OPÉRATION</div>
+    <div class="grid-2">
+      <div class="field"><label>Type</label>
+        <select id="mc-type">
+          <option value="achat">🟢 Achat</option>
+          <option value="vente">🔴 Vente</option>
+          <option value="pret">🔵 Prêt IN</option>
+          <option value="libre">🟡 Libre</option>
+        </select>
+      </div>
+      <div class="field"><label>Joueur</label><input type="text" id="mc-nom" placeholder="Nom"></div>
+      <div class="field"><label>Poste</label>
+        <select id="mc-poste">
+          <option value="GAP">GAP</option><option value="GB">GB</option>
+          <option value="DCA">DCA</option><option value="DCP">DCP</option>
+          <option value="AL">AL</option><option value="LOA">LOA</option>
+          <option value="MdC">MdC</option><option value="MD">MD</option>
+          <option value="Ail">Ail</option><option value="MO">MO</option>
+          <option value="Atl">Atl</option><option value="AdC">AdC</option>
+        </select>
+      </div>
+      <div class="field"><label>Âge</label><input type="number" id="mc-age" placeholder="24"></div>
+      <div class="field"><label>Club</label><input type="text" id="mc-club" placeholder="Club"></div>
+      <div class="field"><label>Montant (M€)</label><input type="number" id="mc-montant" placeholder="0" step="0.5"></div>
+      <div class="field"><label>Salaire/sem (k€)</label><input type="number" id="mc-sal" placeholder="30"></div>
+      <div class="field"><label>Date</label><input type="date" id="mc-date"></div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="mc-notes" rows="2" style="resize:vertical;"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary" onclick="addMercato()">ENREGISTRER</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-mercato')">ANNULER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN FORMATION -->
+<div class="modal-overlay" id="modal-assign">
+  <div class="modal">
+    <div class="modal-title">ASSIGNER LA FORMATION</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Sélectionnez un joueur de la shortlist pour chaque poste.</p>
+    <div id="assign-form"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary" onclick="saveAssignments()">SAUVEGARDER</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-assign')">ANNULER</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ===================== STATE =====================
+let state = {
+  budget: null,
+  shortlist: [],
+  mercato: [],
+  effectif: [],
+  assignments: {},
+};
+
+// Load from localStorage
+function loadState() {
+  const saved = localStorage.getItem('pfc-moneyball-v1');
+  if (saved) {
+    try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+  }
+}
+
+function saveState() {
+  localStorage.setItem('pfc-moneyball-v1', JSON.stringify(state));
+}
+
+loadState();
+
+// ===================== POSTES CONFIG =====================
+const POSTES = {
+  GAP: {
+    label: 'Gardien Avec Ballon',
+    color: 'var(--accent)',
+    stats: [
+      { key: 'reflexes', label: 'Réflexes', w: 10 },
+      { key: 'anticipation', label: 'Anticipation', w: 9 },
+      { key: 'positioning', label: 'Positionnement', w: 8 },
+      { key: 'handling', label: 'Mains', w: 8 },
+      { key: 'communication', label: 'Communication', w: 7 },
+      { key: 'kicking', label: 'Dégagement pied', w: 9 },
+      { key: 'throwing', label: 'Relance bras', w: 7 },
+      { key: 'firstTouch', label: 'Première touche', w: 6 },
+      { key: 'passing', label: 'Passe', w: 7 },
+      { key: 'concentration', label: 'Concentration', w: 9 },
+      { key: 'vision', label: 'Vision', w: 6 },
+      { key: 'agility', label: 'Agilité', w: 7 },
+    ]
+  },
+  GB: {
+    label: 'Gardien de But',
+    color: 'var(--accent)',
+    stats: [
+      { key: 'reflexes', label: 'Réflexes', w: 12 },
+      { key: 'handling', label: 'Mains', w: 10 },
+      { key: 'positioning', label: 'Positionnement', w: 10 },
+      { key: 'concentration', label: 'Concentration', w: 10 },
+      { key: 'anticipation', label: 'Anticipation', w: 9 },
+      { key: 'agility', label: 'Agilité', w: 9 },
+      { key: 'bravery', label: 'Courage', w: 7 },
+      { key: 'jumping', label: 'Détente', w: 8 },
+      { key: 'communication', label: 'Communication', w: 7 },
+      { key: 'kicking', label: 'Dégagement', w: 6 },
+      { key: 'rushing', label: 'Sortie', w: 7 },
+      { key: 'throwing', label: 'Relance', w: 5 },
+    ]
+  },
+  DCA: {
+    label: 'Défenseur Central Appui',
+    color: 'var(--accent2)',
+    stats: [
+      { key: 'marking', label: 'Marquage', w: 11 },
+      { key: 'tackling', label: 'Tacle', w: 10 },
+      { key: 'heading', label: 'Jeu de tête', w: 9 },
+      { key: 'positioning', label: 'Positionnement', w: 10 },
+      { key: 'anticipation', label: 'Anticipation', w: 9 },
+      { key: 'concentration', label: 'Concentration', w: 8 },
+      { key: 'passing', label: 'Passe', w: 8 },
+      { key: 'firstTouch', label: 'Première touche', w: 7 },
+      { key: 'composure', label: 'Sang-froid', w: 8 },
+      { key: 'bravery', label: 'Courage', w: 6 },
+      { key: 'pace', label: 'Vitesse', w: 7 },
+      { key: 'strength', label: 'Force', w: 7 },
+    ]
+  },
+  DCP: {
+    label: 'Défenseur Central Pressing',
+    color: 'var(--accent2)',
+    stats: [
+      { key: 'marking', label: 'Marquage', w: 10 },
+      { key: 'tackling', label: 'Tacle', w: 11 },
+      { key: 'positioning', label: 'Positionnement', w: 10 },
+      { key: 'anticipation', label: 'Anticipation', w: 10 },
+      { key: 'aggression', label: 'Agressivité', w: 7 },
+      { key: 'pace', label: 'Vitesse', w: 9 },
+      { key: 'strength', label: 'Force', w: 8 },
+      { key: 'heading', label: 'Jeu de tête', w: 8 },
+      { key: 'concentration', label: 'Concentration', w: 8 },
+      { key: 'passing', label: 'Passe', w: 6 },
+      { key: 'composure', label: 'Sang-froid', w: 6 },
+      { key: 'workRate', label: 'Activité', w: 7 },
+    ]
+  },
+  AL: {
+    label: 'Arrière Latéral',
+    color: 'var(--accent2)',
+    stats: [
+      { key: 'marking', label: 'Marquage', w: 10 },
+      { key: 'tackling', label: 'Tacle', w: 10 },
+      { key: 'positioning', label: 'Positionnement', w: 9 },
+      { key: 'pace', label: 'Vitesse', w: 9 },
+      { key: 'crossing', label: 'Centre', w: 7 },
+      { key: 'passing', label: 'Passe', w: 8 },
+      { key: 'anticipation', label: 'Anticipation', w: 8 },
+      { key: 'concentration', label: 'Concentration', w: 7 },
+      { key: 'dribbling', label: 'Dribble', w: 6 },
+      { key: 'stamina', label: 'Endurance', w: 9 },
+      { key: 'workRate', label: 'Activité', w: 8 },
+      { key: 'teamWork', label: 'Esprit équipe', w: 9 },
+    ]
+  },
+  LOA: {
+    label: 'Latéral Offensif Appui',
+    color: 'var(--accent2)',
+    stats: [
+      { key: 'crossing', label: 'Centre', w: 11 },
+      { key: 'pace', label: 'Vitesse', w: 10 },
+      { key: 'passing', label: 'Passe', w: 9 },
+      { key: 'dribbling', label: 'Dribble', w: 8 },
+      { key: 'marking', label: 'Marquage', w: 7 },
+      { key: 'tackling', label: 'Tacle', w: 7 },
+      { key: 'stamina', label: 'Endurance', w: 9 },
+      { key: 'workRate', label: 'Activité', w: 8 },
+      { key: 'anticipation', label: 'Anticipation', w: 7 },
+      { key: 'vision', label: 'Vision', w: 7 },
+      { key: 'firstTouch', label: 'Première touche', w: 7 },
+      { key: 'acceleration', label: 'Accélération', w: 10 },
+    ]
+  },
+  MdC: {
+    label: 'Milieu de Contrôle',
+    color: 'var(--green)',
+    stats: [
+      { key: 'passing', label: 'Passe', w: 11 },
+      { key: 'vision', label: 'Vision', w: 11 },
+      { key: 'firstTouch', label: 'Première touche', w: 10 },
+      { key: 'composure', label: 'Sang-froid', w: 9 },
+      { key: 'concentration', label: 'Concentration', w: 8 },
+      { key: 'anticipation', label: 'Anticipation', w: 8 },
+      { key: 'tackling', label: 'Tacle', w: 7 },
+      { key: 'stamina', label: 'Endurance', w: 8 },
+      { key: 'workRate', label: 'Activité', w: 8 },
+      { key: 'teamWork', label: 'Esprit équipe', w: 7 },
+      { key: 'positioning', label: 'Positionnement', w: 7 },
+      { key: 'dribbling', label: 'Dribble', w: 6 },
+    ]
+  },
+  MD: {
+    label: 'Milieu Défensif',
+    color: 'var(--green)',
+    stats: [
+      { key: 'tackling', label: 'Tacle', w: 11 },
+      { key: 'marking', label: 'Marquage', w: 10 },
+      { key: 'positioning', label: 'Positionnement', w: 10 },
+      { key: 'anticipation', label: 'Anticipation', w: 10 },
+      { key: 'concentration', label: 'Concentration', w: 9 },
+      { key: 'passing', label: 'Passe', w: 8 },
+      { key: 'stamina', label: 'Endurance', w: 9 },
+      { key: 'workRate', label: 'Activité', w: 9 },
+      { key: 'aggression', label: 'Agressivité', w: 6 },
+      { key: 'teamWork', label: 'Esprit équipe', w: 7 },
+      { key: 'composure', label: 'Sang-froid', w: 7 },
+      { key: 'firstTouch', label: 'Première touche', w: 4 },
+    ]
+  },
+  Ail: {
+    label: 'Ailier',
+    color: 'var(--red)',
+    stats: [
+      { key: 'pace', label: 'Vitesse', w: 11 },
+      { key: 'acceleration', label: 'Accélération', w: 10 },
+      { key: 'dribbling', label: 'Dribble', w: 11 },
+      { key: 'crossing', label: 'Centre', w: 9 },
+      { key: 'finishing', label: 'Finition', w: 8 },
+      { key: 'firstTouch', label: 'Première touche', w: 8 },
+      { key: 'passing', label: 'Passe', w: 7 },
+      { key: 'agility', label: 'Agilité', w: 8 },
+      { key: 'vision', label: 'Vision', w: 7 },
+      { key: 'offTheBall', label: 'Démarquage', w: 7 },
+      { key: 'composure', label: 'Sang-froid', w: 7 },
+      { key: 'stamina', label: 'Endurance', w: 7 },
+    ]
+  },
+  MO: {
+    label: 'Meneur de Jeu',
+    color: 'var(--red)',
+    stats: [
+      { key: 'passing', label: 'Passe', w: 11 },
+      { key: 'vision', label: 'Vision', w: 12 },
+      { key: 'firstTouch', label: 'Première touche', w: 10 },
+      { key: 'dribbling', label: 'Dribble', w: 9 },
+      { key: 'finishing', label: 'Finition', w: 7 },
+      { key: 'composure', label: 'Sang-froid', w: 9 },
+      { key: 'offTheBall', label: 'Démarquage', w: 8 },
+      { key: 'agility', label: 'Agilité', w: 7 },
+      { key: 'creativity', label: 'Créativité', w: 10 },
+      { key: 'anticipation', label: 'Anticipation', w: 7 },
+      { key: 'technique', label: 'Technique', w: 10 },
+      { key: 'balance', label: 'Équilibre', w: 6 },
+    ]
+  },
+  Atl: {
+    label: 'Attaquant de Liaison',
+    color: 'var(--red)',
+    stats: [
+      { key: 'firstTouch', label: 'Première touche', w: 10 },
+      { key: 'passing', label: 'Passe', w: 9 },
+      { key: 'offTheBall', label: 'Démarquage', w: 10 },
+      { key: 'finishing', label: 'Finition', w: 9 },
+      { key: 'composure', label: 'Sang-froid', w: 9 },
+      { key: 'vision', label: 'Vision', w: 8 },
+      { key: 'dribbling', label: 'Dribble', w: 7 },
+      { key: 'pace', label: 'Vitesse', w: 7 },
+      { key: 'technique', label: 'Technique', w: 8 },
+      { key: 'workRate', label: 'Activité', w: 8 },
+      { key: 'creativity', label: 'Créativité', w: 7 },
+      { key: 'agility', label: 'Agilité', w: 8 },
+    ]
+  },
+  AdC: {
+    label: 'Attaquant de Centre',
+    color: 'var(--red)',
+    stats: [
+      { key: 'finishing', label: 'Finition', w: 13 },
+      { key: 'composure', label: 'Sang-froid', w: 10 },
+      { key: 'offTheBall', label: 'Démarquage', w: 10 },
+      { key: 'heading', label: 'Jeu de tête', w: 8 },
+      { key: 'firstTouch', label: 'Première touche', w: 8 },
+      { key: 'pace', label: 'Vitesse', w: 8 },
+      { key: 'strength', label: 'Force', w: 7 },
+      { key: 'bravery', label: 'Courage', w: 6 },
+      { key: 'anticipation', label: 'Anticipation', w: 9 },
+      { key: 'dribbling', label: 'Dribble', w: 6 },
+      { key: 'technique', label: 'Technique', w: 8 },
+      { key: 'longShots', label: 'Frappe lointaine', w: 7 },
+    ]
+  },
+};
+
+// ===================== TABS =====================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const tabs = ['scoring','shortlist','compare','effectif','mercato','budget','formation'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'compare') updateCompareSelects();
+  if (tab === 'budget') updateBudgetPage();
+  if (tab === 'formation') updateFormationView();
+  if (tab === 'effectif') renderEffectif();
+}
+
+// ===================== SCORING =====================
+function loadPosteStats() {
+  const poste = document.getElementById('sc-poste').value;
+  if (!poste || !POSTES[poste]) {
+    document.getElementById('stats-form-card').style.display = 'none';
+    return;
+  }
+  const cfg = POSTES[poste];
+  document.getElementById('stats-form-card').style.display = 'block';
+  document.getElementById('stats-form-title').textContent = cfg.label + ' — Statistiques';
+  const form = document.getElementById('stats-form');
+  form.innerHTML = cfg.stats.map(s => `
+    <div class="field stat-input-wrap">
+      <label>${s.label}</label>
+      <input type="number" id="stat-${s.key}" min="1" max="20" placeholder="—">
+      <span class="stat-weight">×${s.w}</span>
+    </div>
+  `).join('');
+}
+
+function computeScore() {
+  const poste = document.getElementById('sc-poste').value;
+  const name = document.getElementById('sc-name').value || 'Joueur';
+  if (!poste || !POSTES[poste]) { showNotif('Sélectionnez un poste', true); return; }
+  const cfg = POSTES[poste];
+  let totalWeight = 0, totalScore = 0, filled = 0;
+  const breakdown = [];
+  cfg.stats.forEach(s => {
+    const val = parseFloat(document.getElementById('stat-' + s.key)?.value);
+    totalWeight += s.w;
+    if (!isNaN(val) && val > 0) {
+      totalScore += (val / 20) * s.w;
+      filled++;
+      breakdown.push({ label: s.label, val, w: s.w, pct: Math.round((val/20)*100) });
+    }
+  });
+  if (filled === 0) { showNotif('Renseignez au moins une stat', true); return; }
+  const score = Math.round((totalScore / totalWeight) * 100);
+  const tier = score >= 80 ? 'S' : score >= 65 ? 'A' : score >= 50 ? 'B' : score >= 35 ? 'C' : 'D';
+  const age = parseInt(document.getElementById('sc-age').value) || 0;
+  const valeur = parseFloat(document.getElementById('sc-valeur').value) || 0;
+
+  document.getElementById('score-result').innerHTML = `
+    <div style="display:flex;align-items:center;gap:20px;justify-content:center;margin-bottom:20px;">
+      <div class="score-circle score-${tier}">${tier}</div>
+      <div>
+        <div style="font-family:'Bebas Neue';font-size:36px;letter-spacing:2px;color:var(--text);">${score}</div>
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;">/100 · ${cfg.label}</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">${name} · ${age ? age + ' ans' : '—'} · ${valeur ? valeur + ' M€' : '—'}</div>
+    ${breakdown.slice(0,6).map(b => `
+      <div class="score-bar-wrap">
+        <div class="score-bar-label"><span>${b.label}</span><span>${b.val}/20</span></div>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:${b.pct}%;background:${cfg.color};"></div></div>
+      </div>
+    `).join('')}
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">
+      <button class="btn btn-primary btn-sm" onclick="addToShortlistFromScoring(${score},'${tier}')">+ SHORTLIST</button>
+    </div>
+  `;
+}
+
+function addToShortlistFromScoring(score, tier) {
+  const name = document.getElementById('sc-name').value;
+  const poste = document.getElementById('sc-poste').value;
+  const age = document.getElementById('sc-age').value;
+  const valeur = document.getElementById('sc-valeur').value;
+  const salaire = document.getElementById('sc-salaire').value;
+  if (!name || !poste) { showNotif('Renseignez nom et poste', true); return; }
+  state.shortlist.push({
+    id: Date.now(), nom: name, poste, age: parseInt(age)||0,
+    club: '—', valeur: parseFloat(valeur)||0, salaire: parseFloat(salaire)||0,
+    score, tier, prio: 2, statut: 'cible', notes: ''
+  });
+  saveState();
+  renderShortlist();
+  showNotif(`${name} ajouté à la shortlist`);
+}
+
+function clearScoring() {
+  document.getElementById('sc-name').value = '';
+  document.getElementById('sc-poste').value = '';
+  document.getElementById('sc-age').value = '';
+  document.getElementById('sc-valeur').value = '';
+  document.getElementById('sc-salaire').value = '';
+  document.getElementById('stats-form-card').style.display = 'none';
+  document.getElementById('score-result').innerHTML = 'Remplissez le formulaire et cliquez sur Calculer';
+}
+
+// ===================== CSV IMPORT =====================
+function parseNum(val) {
+  if (!val || val === '—' || val === '-' || val === 'N/A') return 0;
+  const s = String(val).trim();
+
+  // Fourchettes "475K € - 4,8M €" → prend le max
+  if (s.includes(' - ') || s.includes(' – ')) {
+    const parts = s.split(/\s*[-–]\s*/);
+    return Math.max(...parts.map(p => parseNum(p)));
+  }
+
+  const upper = s.toUpperCase();
+  const num = parseFloat(s.replace(/[^0-9.,\-]/g, '').replace(',', '.'));
+  if (isNaN(num)) return 0;
+
+  if (upper.includes('M'))  return num;           // 4.8M€ → 4.8 M€
+  if (upper.includes('K'))  return num / 1000;    // 475K€ → 0.475 M€
+  if (num > 10000)          return num / 1000000; // 475000 → 0.475 M€
+  if (num > 100)            return num / 1000;    // 475 → 0.475 M€
+  return num;
+}
+
+// Salaires : toujours retournés en k€/sem
+function parseSalaire(val) {
+  if (!val || val === '—' || val === '-' || val === 'N/A') return 0;
+  const s = String(val).trim();
+
+  // Fourchettes → prend le max
+  if (s.includes(' - ') || s.includes(' – ')) {
+    const parts = s.split(/\s*[-–]\s*/);
+    return Math.max(...parts.map(p => parseSalaire(p)));
+  }
+
+  const upper = s.toUpperCase();
+  // Retire tout sauf chiffres, virgule, point, signe
+  const num = parseFloat(s.replace(/[^0-9.,\-]/g, '').replace(',', '.'));
+  if (isNaN(num)) return 0;
+
+  if (upper.includes('M'))  return num * 1000;  // 1M€/sem → 1000 k€
+  if (upper.includes('K'))  return num;         // 5.5K€/sem → 5.5 k€
+  if (num > 1000)           return num / 1000;  // 5500 → 5.5 k€
+  return num;                                   // déjà en k€
+}
+
+function findCol(row, candidates) {
+  for (const c of candidates) {
+    const key = Object.keys(row).find(k => k.trim().toLowerCase() === c.toLowerCase());
+    if (key && row[key] !== '' && row[key] !== undefined) return parseNum(row[key]);
+  }
+  return 0;
+}
+
+// ===================== KEVOS SCORING ENGINE =====================
+// Interpole linéairement entre les seuils Kevos
+// BIEN = 100pts · OK = 60pts · INSATISFAISANT = 20pts
+// invert:true → moins = mieux (ex: buts encaissés)
+function kevosScore(val, bien, ok, insatisfaisant, invert) {
+  // Normalise pour que la direction soit toujours : bien > ok > insatisfaisant
+  // En mode invert, on retourne le val pour que la logique reste identique
+  let v = val, b = bien, o = ok, ins = insatisfaisant;
+
+  if (invert) {
+    // Moins = mieux : on inverse les valeurs
+    v = -val; b = -bien; o = -ok; ins = -insatisfaisant;
+  }
+
+  // Garde-fous : si les seuils sont mal ordonnés dans les données Kevos, on reordonne
+  const sorted = [
+    { score: 100, seuil: b },
+    { score: 60,  seuil: o },
+    { score: 20,  seuil: ins },
+  ].sort((a, z) => z.seuil - a.seuil); // décroissant
+
+  const top    = sorted[0]; // score=100
+  const mid    = sorted[1]; // score=60
+  const bottom = sorted[2]; // score=20
+
+  if (v >= top.seuil) return 100;
+  if (v >= mid.seuil) {
+    const range = top.seuil - mid.seuil;
+    if (range <= 0) return 60;
+    return Math.round(60 + 40 * (v - mid.seuil) / range);
+  }
+  if (v >= bottom.seuil) {
+    const range = mid.seuil - bottom.seuil;
+    if (range <= 0) return 20;
+    return Math.round(20 + 40 * (v - bottom.seuil) / range);
+  }
+  // En dessous du seuil insatisfaisant — extrapolation linéaire vers 0
+  const range = mid.seuil - bottom.seuil;
+  if (range <= 0) return 0;
+  return Math.max(0, Math.round(20 * (v - bottom.seuil + range) / range));
+}
+
+function scoreFromSeuils(stats, seuils) {
+  let total = 0, totalW = 0;
+  seuils.forEach(s => {
+    // Utilise ?? pour que la valeur 0 soit acceptée (pas remplacée par 0)
+    const raw = stats[s.key];
+    const val = (raw !== undefined && raw !== null && raw !== '') ? raw : 0;
+    const sc = kevosScore(val, s.bien, s.ok, s.insatisfaisant, s.invert || false);
+    total += sc * s.w;
+    totalW += s.w;
+  });
+  return Math.round(total / totalW);
+}
+
+const CSV_PROFILES = {
+  gk: {
+    label: 'Gardien',
+    poste: 'GB',
+    hint: 'Kevos: Rapport xGoals/90 · Buts enc./90 · Int/90 · %Pass',
+    cols: ['EG ÉVITÉS','BUTS ENC./90','INT/90','% ARRÊTS'],
+    extract: r => ({
+      rapportXg:  findCol(r, ['xGÉ', 'Expected Goals évités', 'EG empêchés par 90 min', 'EG évités', 'Rapport xGoals', 'PSxG/90', 'Mieux que les buts attendus (xG)']),
+      butsEnc:    findCol(r, ['enc/90', 'Buts encaissés par 90 min. de jeu', 'Buts enc/90', 'Buts encaissés/90', 'Buts encaissés', 'Tbl', 'GA/90', 'GA']),
+      interc:     findCol(r, ['Int/90', 'Interceptions par 90 min. jouées', 'Interceptions par 90', 'Int', 'Interceptions']),
+      pctPass:    findCol(r, ['% pas.', 'Taux de réussite des passes', '% Ra', '% Pass.', 'Pass %', 'Ps%']),
+      cages:      findCol(r, ['Cln/90', 'Cages inviolées par 90 min. de jeu', 'Clean sheets/90', 'CS/90']),
+      pctArrets:  findCol(r, ['% Ra', '% arrêts', 'Ratio d\'arrêts', 'Save %']),
+      transfert:  findCol(r, ['Montant transfert', 'Valeur', 'Value', 'Transfer Value']),
+      salaire:    findCol(r, ['Salaire', 'Salary', 'Sal', 'Wage']),
+    }),
+    seuils: [
+      { key:'rapportXg', label:'xGÉ (EG évités)',    w:25, bien:0.25,  ok:0,    insatisfaisant:-0.38 },
+      { key:'butsEnc',   label:'Buts enc./90',        w:20, bien:0.76,  ok:2.15, insatisfaisant:2.15, invert:true },
+      { key:'pctArrets', label:'% Ra (arrêts)',        w:25, bien:78,    ok:74,   insatisfaisant:47 },
+      { key:'cages',     label:'Cln/90 (cages inv.)', w:15, bien:0.5,   ok:0.3,  insatisfaisant:0.1 },
+      { key:'interc',    label:'Int/90',               w:10, bien:0.22,  ok:0,    insatisfaisant:0.04 },
+      { key:'pctPass',   label:'% pas. (passes)',      w:5,  bien:78,    ok:70,   insatisfaisant:55 },
+    ],
+    display: d => [
+      { label:'xGÉ',        val: d.rapportXg },
+      { label:'enc/90',     val: d.butsEnc },
+      { label:'% Ra',       val: d.pctArrets ? d.pctArrets+'%' : '—' },
+      { label:'Cln/90',     val: d.cages },
+      { label:'Int/90',     val: d.interc },
+      { label:'% pas.',     val: d.pctPass ? d.pctPass+'%' : '—' },
+    ],
+    notes: d => `xGÉ:${d.rapportXg} enc/90:${d.butsEnc} %Ra:${d.pctArrets} Cln:${d.cages} Int:${d.interc}`,
+  },
+  dc: {
+    label: 'Défenseur Central',
+    poste: 'DCA',
+    hint: 'Kevos: Tacles/90 · Têtes% · Dégagements/90 · Interceptions/90 · Tirs bloqués/90',
+    cols: ['TACLES/90','TÊTES%','DÉGAG./90','INT/90','TIRS BLOQ./90'],
+    extract: r => ({
+      tacles:   findCol(r, ['Tcl R', 'Tacles/90', 'Tacles réussis', 'Tacles', 'Tcl']),
+      tetes:    findCol(r, ['Têtes remportées %', 'Têtes%', 'Têtes remportées', 'Headers Won%', 'Têtes', 'Tetes']),
+      degag:    findCol(r, ['Dégagements/90', 'Dégagements', 'Deg', 'Dég']),
+      interc:   findCol(r, ['Int', 'Interceptions/90', 'Interceptions']),
+      tirsBloc: findCol(r, ['Tirs bloqués/90', 'Tirs bloqués', 'Blocks', 'Blocs']),
+      transfert:findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:  parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'tacles',   label:'Tacles/90',       w:25, bien:2.38, ok:1.29, insatisfaisant:-0.38 },
+      { key:'tetes',    label:'Têtes remport.%',  w:20, bien:64,   ok:59,   insatisfaisant:59 },
+      { key:'degag',    label:'Dégagements/90',   w:20, bien:1.64, ok:2.15, insatisfaisant:0.44 },
+      { key:'interc',   label:'Interceptions/90', w:20, bien:3.18, ok:1.36, insatisfaisant:1.36 },
+      { key:'tirsBloc', label:'Tirs bloqués/90',  w:15, bien:0.72, ok:0.33, insatisfaisant:0.19 },
+    ],
+    display: d => [
+      { label:'Tacles/90', val: d.tacles },
+      { label:'Têtes%',    val: d.tetes ? d.tetes+'%' : '—' },
+      { label:'Dégag./90', val: d.degag },
+      { label:'Int/90',    val: d.interc },
+      { label:'TirsBloq.', val: d.tirsBloc },
+    ],
+    notes: d => `Tcl:${d.tacles} Têtes:${d.tetes}% Dég:${d.degag} Int:${d.interc} Bloq:${d.tirsBloc}`,
+  },
+  dcr: {
+    label: 'Défenseur Relanceur',
+    poste: 'DCP',
+    hint: 'Kevos: Tacles/90 · Dégagements/90 · Interceptions/90 · Tirs bloqués/90 · Passes prog./90',
+    cols: ['TACLES/90','DÉGAG./90','INT/90','TIRS BLOQ./90','PASS.PROG./90'],
+    extract: r => ({
+      tacles:    findCol(r, ['Tcl R', 'Tacles/90', 'Tacles réussis', 'Tacles', 'Tcl']),
+      degag:     findCol(r, ['Dégagements/90', 'Dégagements', 'Deg', 'Dég']),
+      interc:    findCol(r, ['Int', 'Interceptions/90', 'Interceptions']),
+      tirsBloc:  findCol(r, ['Tirs bloqués/90', 'Tirs bloqués', 'Blocks', 'Blocs']),
+      passProg:  findCol(r, ['Passes progressives/90', 'Passes progressives', 'Prog', 'PrgP']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'tacles',   label:'Tacles/90',          w:25, bien:2.34, ok:0.86, insatisfaisant:0.88 },
+      { key:'degag',    label:'Dégagements/90',      w:15, bien:0.69, ok:0.64, insatisfaisant:0.39 },
+      { key:'interc',   label:'Interceptions/90',    w:25, bien:3,    ok:2.33, insatisfaisant:1.69 },
+      { key:'tirsBloc', label:'Tirs bloqués/90',     w:15, bien:0.43, ok:4.52, insatisfaisant:0.16 },
+      { key:'passProg', label:'Passes progressives/90', w:20, bien:4.9, ok:6.13, insatisfaisant:3.17 },
+    ],
+    display: d => [
+      { label:'Tacles/90',   val: d.tacles },
+      { label:'Dégag./90',   val: d.degag },
+      { label:'Int/90',      val: d.interc },
+      { label:'TirsBloq./90',val: d.tirsBloc },
+      { label:'PassProg./90',val: d.passProg },
+    ],
+    notes: d => `Tcl:${d.tacles} Dég:${d.degag} Int:${d.interc} Bloq:${d.tirsBloc} Prog:${d.passProg}`,
+  },
+  al: {
+    label: 'Arrière Latéral',
+    poste: 'AL',
+    hint: 'Kevos: Tacles/90 · Interceptions/90 · Pressing eff./90 · Occasions/90 · Passes prog./90',
+    cols: ['TACLES/90','INT/90','PRESSING/90','OCCASIONS/90','PASS.PROG./90'],
+    extract: r => ({
+      tacles:    findCol(r, ['Tcl R', 'Tacles/90', 'Tacles réussis', 'Tacles', 'Tcl']),
+      interc:    findCol(r, ['Int', 'Interceptions/90', 'Interceptions']),
+      pressing:  findCol(r, ['Pressing effectué/90', 'Pressing', 'Press', 'Prss']),
+      occasions: findCol(r, ['Occasions/90', 'Occasions', 'Chances', 'Occ']),
+      passProg:  findCol(r, ['Passes progressives/90', 'Passes progressives', 'Prog', 'PrgP']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'tacles',    label:'Tacles/90',           w:25, bien:3.66, ok:2.75, insatisfaisant:1.44 },
+      { key:'interc',    label:'Interceptions/90',     w:25, bien:3.31, ok:2.75, insatisfaisant:2 },
+      { key:'pressing',  label:'Pressing eff./90',     w:20, bien:35,   ok:2.48, insatisfaisant:2.35 },
+      { key:'occasions', label:'Occasions/90',         w:15, bien:0.47, ok:0.14, insatisfaisant:0.03 },
+      { key:'passProg',  label:'Passes progressives/90', w:15, bien:6.59, ok:6.13, insatisfaisant:4.14 },
+    ],
+    display: d => [
+      { label:'Tacles/90',  val: d.tacles },
+      { label:'Int/90',     val: d.interc },
+      { label:'Pressing/90',val: d.pressing },
+      { label:'Occ./90',    val: d.occasions },
+      { label:'PassProg./90',val: d.passProg },
+    ],
+    notes: d => `Tcl:${d.tacles} Int:${d.interc} Press:${d.pressing} Occ:${d.occasions} Prog:${d.passProg}`,
+  },
+  loa: {
+    label: 'Latéral Offensif',
+    poste: 'LOA',
+    hint: 'Kevos: Tacles/90 · Interceptions/90 · Pressing eff./90 · Occasions/90 · Dribbles/90',
+    cols: ['TACLES/90','INT/90','PRESSING/90','OCCASIONS/90','DRIBBLES/90'],
+    extract: r => ({
+      tacles:    findCol(r, ['Tcl R', 'Tacles/90', 'Tacles réussis', 'Tacles', 'Tcl']),
+      interc:    findCol(r, ['Int', 'Interceptions/90', 'Interceptions']),
+      pressing:  findCol(r, ['Pressing effectué/90', 'Pressing', 'Press', 'Prss']),
+      occasions: findCol(r, ['Occasions/90', 'Occasions', 'Chances', 'Occ']),
+      dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'tacles',    label:'Tacles/90',        w:20, bien:3.29, ok:2.89, insatisfaisant:1.57 },
+      { key:'interc',    label:'Interceptions/90',  w:20, bien:3.38, ok:2.78, insatisfaisant:1.69 },
+      { key:'pressing',  label:'Pressing eff./90',  w:20, bien:30,   ok:2.79, insatisfaisant:1.51 },
+      { key:'occasions', label:'Occasions/90',      w:20, bien:0.27, ok:0.24, insatisfaisant:0.04 },
+      { key:'dribbles',  label:'Dribbles/90',       w:20, bien:1.72, ok:1.69, insatisfaisant:0.39 },
+    ],
+    display: d => [
+      { label:'Tacles/90',  val: d.tacles },
+      { label:'Int/90',     val: d.interc },
+      { label:'Pressing/90',val: d.pressing },
+      { label:'Occ./90',    val: d.occasions },
+      { label:'Dribbles/90',val: d.dribbles },
+    ],
+    notes: d => `Tcl:${d.tacles} Int:${d.interc} Press:${d.pressing} Occ:${d.occasions} Drb:${d.dribbles}`,
+  },
+  md: {
+    label: 'Milieu Défensif',
+    poste: 'MD',
+    hint: 'Kevos: Tacles/90 · Interceptions/90 · Blocs/90 · Pressing eff./90 · Passes réussies%',
+    cols: ['TACLES/90','INT/90','BLOCS/90','PRESSING/90','PASS.RÉUSS.%'],
+    extract: r => ({
+      tacles:   findCol(r, ['Tcl R', 'Tacles/90', 'Tacles réussis', 'Tacles', 'Tcl']),
+      interc:   findCol(r, ['Int', 'Interceptions/90', 'Interceptions']),
+      blocs:    findCol(r, ['Blocs/90', 'Blocs', 'Blocks', 'Bloc']),
+      pressing: findCol(r, ['Pressing effectué/90', 'Pressing', 'Press', 'Prss']),
+      pctPass:  findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
+      transfert:findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:  parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'tacles',   label:'Tacles/90',        w:25, bien:2.16, ok:1.17, insatisfaisant:1.17 },
+      { key:'interc',   label:'Interceptions/90',  w:25, bien:1.97, ok:1.32, insatisfaisant:1.32 },
+      { key:'blocs',    label:'Blocs/90',          w:15, bien:0.41, ok:0.2,  insatisfaisant:0.2 },
+      { key:'pressing', label:'Pressing eff./90',  w:20, bien:2.84, ok:1.13, insatisfaisant:1.13 },
+      { key:'pctPass',  label:'Passes réussies %', w:15, bien:90,   ok:88,   insatisfaisant:88 },
+    ],
+    display: d => [
+      { label:'Tacles/90',  val: d.tacles },
+      { label:'Int/90',     val: d.interc },
+      { label:'Blocs/90',   val: d.blocs },
+      { label:'Pressing/90',val: d.pressing },
+      { label:'%Pass',      val: d.pctPass ? d.pctPass+'%' : '—' },
+    ],
+    notes: d => `Tcl:${d.tacles} Int:${d.interc} Bloq:${d.blocs} Press:${d.pressing} %Pass:${d.pctPass}`,
+  },
+  mc: {
+    label: 'Milieu Créateur',
+    poste: 'MdC',
+    hint: 'Kevos: Passes Clés/90 · Passes prog./90 · xPassesDéc/90 · Dribbles/90 · Pass.réussies%',
+    cols: ['PASS.CLÉS/90','PASS.PROG./90','xPASSdéc/90','DRIBBLES/90','PASS.RÉUSS.%'],
+    extract: r => ({
+      passeCles: findCol(r, ['Passes Clés/90', 'Passes clés/90', 'Passes clés', 'Clé', 'KP', 'Key Passes']),
+      passProg:  findCol(r, ['Passes progressives/90', 'Passes progressives', 'Prog', 'PrgP']),
+      xPassDec:  findCol(r, ['xPassesDéc/90', 'xPassesDec/90', 'xA', 'xAssists', 'xAG']),
+      dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
+      pctPass:   findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'passeCles', label:'Passes Clés/90',     w:25, bien:1.85, ok:0.19, insatisfaisant:0.76 },
+      { key:'passProg',  label:'Passes prog./90',     w:25, bien:7.25, ok:1.22, insatisfaisant:2.67 },
+      { key:'xPassDec',  label:'xPassesDéc/90',       w:20, bien:0.18, ok:0.19, insatisfaisant:0.1 },
+      { key:'dribbles',  label:'Dribbles/90',          w:15, bien:0.35, ok:1.32, insatisfaisant:0.43 },
+      { key:'pctPass',   label:'Passes réussies %',    w:15, bien:88,   ok:83,   insatisfaisant:82 },
+    ],
+    display: d => [
+      { label:'PassClés/90', val: d.passeCles },
+      { label:'PassProg/90', val: d.passProg },
+      { label:'xPassDéc/90', val: d.xPassDec },
+      { label:'Dribbles/90', val: d.dribbles },
+      { label:'%Pass',       val: d.pctPass ? d.pctPass+'%' : '—' },
+    ],
+    notes: d => `Clés:${d.passeCles} Prog:${d.passProg} xPD:${d.xPassDec} Drb:${d.dribbles} %Pass:${d.pctPass}`,
+  },
+  mo: {
+    label: 'Milieu Offensif',
+    poste: 'MO',
+    hint: 'Kevos: Passes Clés/90 · xPassesDéc/90 · Dribbles/90 · Pass.réussies% · Tirs cadrés/90',
+    cols: ['PASS.CLÉS/90','xPASSdéc/90','DRIBBLES/90','PASS.RÉUSS.%','TIRS CAD./90'],
+    extract: r => ({
+      passeCles: findCol(r, ['Passes Clés/90', 'Passes clés/90', 'Passes clés', 'Clé', 'KP', 'Key Passes']),
+      xPassDec:  findCol(r, ['xPassesDéc/90', 'xPassesDec/90', 'xA', 'xAssists', 'xAG']),
+      dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
+      pctPass:   findCol(r, ['% pas.', '% Pass.', '% Passes', 'Pass %', 'Ps%']),
+      tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT', 'Tirs/90']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'passeCles', label:'Passes Clés/90',   w:25, bien:1.81, ok:0.75, insatisfaisant:0.75 },
+      { key:'xPassDec',  label:'xPassesDéc/90',    w:25, bien:0.32, ok:1.22, insatisfaisant:0.13 },
+      { key:'dribbles',  label:'Dribbles/90',       w:20, bien:3.85, ok:0.89, insatisfaisant:0.89 },
+      { key:'pctPass',   label:'Passes réussies %', w:15, bien:84,   ok:82,   insatisfaisant:82 },
+      { key:'tirsCad',   label:'Tirs cadrés/90',    w:15, bien:1.1,  ok:0.37, insatisfaisant:0.37 },
+    ],
+    display: d => [
+      { label:'PassClés/90', val: d.passeCles },
+      { label:'xPassDéc/90', val: d.xPassDec },
+      { label:'Dribbles/90', val: d.dribbles },
+      { label:'%Pass',       val: d.pctPass ? d.pctPass+'%' : '—' },
+      { label:'TirsCad./90', val: d.tirsCad },
+    ],
+    notes: d => `Clés:${d.passeCles} xPD:${d.xPassDec} Drb:${d.dribbles} %Pass:${d.pctPass} TirsCad:${d.tirsCad}`,
+  },
+  ailpd: {
+    label: 'Ailier Passeur/Dribbleur',
+    poste: 'Ail',
+    hint: 'Kevos: Dribbles/90 · Occasions/90 · Sprint · Occasions Franches · xAssists/90',
+    cols: ['DRIBBLES/90','OCCASIONS/90','SPRINT','OCC.FRANCHES','xASSISTS/90'],
+    extract: r => ({
+      dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
+      occasions: findCol(r, ['Occasions/90', 'Occasions', 'Chances', 'Occ']),
+      sprint:    findCol(r, ['Sprint', 'Distance Sprint', 'Sprints']),
+      occFranch: findCol(r, ['Occasions Franches/90', 'Occasions Franches', 'Big Chances', 'Occ. Franches']),
+      xAssists:  findCol(r, ['xAssists/90', 'xAssists', 'xA', 'xAG']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'dribbles',  label:'Dribbles/90',        w:25, bien:4.69, ok:1.05, insatisfaisant:1.05 },
+      { key:'occasions', label:'Occasions/90',        w:20, bien:0.68, ok:0.1,  insatisfaisant:0.1 },
+      { key:'sprint',    label:'Sprint',              w:20, bien:18.01,ok:8.57, insatisfaisant:8.57 },
+      { key:'occFranch', label:'Occasions Franches',  w:20, bien:1.94, ok:0.59, insatisfaisant:0.59 },
+      { key:'xAssists',  label:'xAssists/90',         w:15, bien:0.36, ok:0.1,  insatisfaisant:0.1 },
+    ],
+    display: d => [
+      { label:'Dribbles/90', val: d.dribbles },
+      { label:'Occ./90',     val: d.occasions },
+      { label:'Sprint',      val: d.sprint },
+      { label:'Occ.Franch.', val: d.occFranch },
+      { label:'xAssists/90', val: d.xAssists },
+    ],
+    notes: d => `Drb:${d.dribbles} Occ:${d.occasions} Sprint:${d.sprint} OccF:${d.occFranch} xA:${d.xAssists}`,
+  },
+  ailfb: {
+    label: 'Ailier Finisseur/Buteur',
+    poste: 'Ail',
+    hint: 'Kevos: Dribbles/90 · Tirs cadrés/90 · Sprint · npxGoals/90 · Ratio Conv.%',
+    cols: ['DRIBBLES/90','TIRS CAD./90','SPRINT','npxG/90','CONV.%'],
+    extract: r => ({
+      dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
+      tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT']),
+      sprint:    findCol(r, ['Sprint', 'Distance Sprint', 'Sprints']),
+      npxG:      findCol(r, ['Non-penalty xGoals/90', 'npxG', 'npxG/90', 'Non-penalty xG']),
+      convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'dribbles',  label:'Dribbles/90',     w:20, bien:4.6,  ok:3.01, insatisfaisant:1.05 },
+      { key:'tirsCad',   label:'Tirs cadrés/90',  w:25, bien:1.34, ok:0.82, insatisfaisant:0.43 },
+      { key:'sprint',    label:'Sprint',           w:20, bien:17.45,ok:14.17,insatisfaisant:8.24 },
+      { key:'npxG',      label:'npxGoals/90',      w:20, bien:0.25, ok:0.15, insatisfaisant:0.15 },
+      { key:'convRatio', label:'Ratio Conv.%',     w:15, bien:25,   ok:16,   insatisfaisant:7 },
+    ],
+    display: d => [
+      { label:'Dribbles/90', val: d.dribbles },
+      { label:'TirsCad./90', val: d.tirsCad },
+      { label:'Sprint',      val: d.sprint },
+      { label:'npxG/90',     val: d.npxG },
+      { label:'Conv.%',      val: d.convRatio ? d.convRatio+'%' : '—' },
+    ],
+    notes: d => `Drb:${d.dribbles} TirsCad:${d.tirsCad} Sprint:${d.sprint} npxG:${d.npxG} Conv:${d.convRatio}%`,
+  },
+  atl: {
+    label: 'Attaquant Soutien',
+    poste: 'Atl',
+    hint: 'Kevos: Têtes remportées/90 · xPassesDéc/90 · npxGoals/90 · Tirs cadrés/90 · Ratio Conv.%',
+    cols: ['TÊTES/90','xPASSdéc/90','npxG/90','TIRS CAD./90','CONV.%'],
+    extract: r => ({
+      tetes:     findCol(r, ['Têtes remportées/90', 'Têtes remportées', 'Têtes', 'Headers']),
+      xPassDec:  findCol(r, ['xPassesDéc/90', 'xPassesDec/90', 'xA', 'xAssists']),
+      npxG:      findCol(r, ['Non-penalty xGoals/90', 'npxG', 'npxG/90']),
+      tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT']),
+      convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'tetes',     label:'Têtes remport./90', w:15, bien:2.4,  ok:1.55, insatisfaisant:0.67 },
+      { key:'xPassDec',  label:'xPassesDéc/90',     w:25, bien:0.33, ok:0.14, insatisfaisant:0.06 },
+      { key:'npxG',      label:'npxGoals/90',        w:25, bien:0.3,  ok:0.3,  insatisfaisant:0.08 },
+      { key:'tirsCad',   label:'Tirs cadrés/90',     w:20, bien:0.94, ok:0.94, insatisfaisant:0.67 },
+      { key:'convRatio', label:'Ratio Conv.%',        w:15, bien:25,   ok:20,   insatisfaisant:13 },
+    ],
+    display: d => [
+      { label:'Têtes/90',    val: d.tetes },
+      { label:'xPassDéc/90', val: d.xPassDec },
+      { label:'npxG/90',     val: d.npxG },
+      { label:'TirsCad./90', val: d.tirsCad },
+      { label:'Conv.%',      val: d.convRatio ? d.convRatio+'%' : '—' },
+    ],
+    notes: d => `Têtes:${d.tetes} xPD:${d.xPassDec} npxG:${d.npxG} TirsCad:${d.tirsCad} Conv:${d.convRatio}%`,
+  },
+  adc: {
+    label: 'Attaquant Finisseur',
+    poste: 'AdC',
+    hint: 'Kevos: Têtes remportées/90 · Dribbles/90 · npxGoals/90 · Tirs cadrés/90 · Ratio Conv.%',
+    cols: ['TÊTES/90','DRIBBLES/90','npxG/90','TIRS CAD./90','CONV.%'],
+    extract: r => ({
+      tetes:     findCol(r, ['Têtes remportées/90', 'Têtes remportées', 'Têtes', 'Headers']),
+      dribbles:  findCol(r, ['Dribbles/90', 'Dribbles réussis/90', 'Dribbles', 'Drb']),
+      npxG:      findCol(r, ['Non-penalty xGoals/90', 'npxG', 'npxG/90']),
+      tirsCad:   findCol(r, ['Tirs cadrés/90', 'Tirs cadrés', 'SoT/90', 'SoT']),
+      convRatio: findCol(r, ['Ratio Conversion %', 'Ratio Conv', 'Conv%', 'Conversion %']),
+      transfert: findCol(r, ['Montant transfert', 'Valeur', 'Value']),
+      salaire:   parseSalaire(Object.entries(r).find(([k]) => ['salaire','salary','sal','wage'].includes(k.trim().toLowerCase()))?.[1] || ''),
+    }),
+    seuils: [
+      { key:'tetes',     label:'Têtes remport./90', w:15, bien:3.01, ok:2.76, insatisfaisant:1.09 },
+      { key:'dribbles',  label:'Dribbles/90',        w:20, bien:1.17, ok:1.17, insatisfaisant:0.69 },
+      { key:'npxG',      label:'npxGoals/90',         w:30, bien:0.35, ok:0.35, insatisfaisant:0.23 },
+      { key:'tirsCad',   label:'Tirs cadrés/90',      w:20, bien:1.09, ok:1.09, insatisfaisant:0.73 },
+      { key:'convRatio', label:'Ratio Conv.%',         w:15, bien:25,   ok:21,   insatisfaisant:15 },
+    ],
+    display: d => [
+      { label:'Têtes/90',    val: d.tetes },
+      { label:'Dribbles/90', val: d.dribbles },
+      { label:'npxG/90',     val: d.npxG },
+      { label:'TirsCad./90', val: d.tirsCad },
+      { label:'Conv.%',      val: d.convRatio ? d.convRatio+'%' : '—' },
+    ],
+    notes: d => `Têtes:${d.tetes} Drb:${d.dribbles} npxG:${d.npxG} TirsCad:${d.tirsCad} Conv:${d.convRatio}%`,
+  },
+};
+
+function computeMoneyballCSV(rows) {
+  const mode = document.getElementById('csv-poste-mode').value;
+  const profile = CSV_PROFILES[mode];
+  const data = rows.map(r => ({ row: r, ...profile.extract(r) }));
+  return data.map(d => {
+    const score = scoreFromSeuils(d, profile.seuils);
+    return { ...d, score, _profile: mode };
+  });
+}
+
+function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const lines = text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) { showNotif('CSV vide ou invalide', true); return; }
+    const sep = lines[0].includes(';') ? ';' : ',';
+    const headers = lines[0].split(sep).map(h => h.trim().replace(/"/g,''));
+    document.getElementById('csv-cols').innerHTML = headers.map(h => `<span style="background:var(--surface2);padding:2px 6px;border-radius:3px;margin:2px;display:inline-block;">${h}</span>`).join('');
+    const rows = lines.slice(1).map(l => {
+      const vals = l.split(sep).map(v => v.trim().replace(/"/g,''));
+      return Object.fromEntries(headers.map((h,i) => [h, vals[i]||'']));
+    });
+    const scored = computeMoneyballCSV(rows);
+    renderCSVTable(headers, scored);
+    showNotif(`${rows.length} joueurs importés & scorés`);
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function renderCSVTable(headers, scored) {
+  const wrap = document.getElementById('csv-table-wrap');
+  const sorted = [...scored].sort((a, b) => b.score - a.score);
+  const mode = scored[0]?._profile || document.getElementById('csv-poste-mode').value;
+  const profile = CSV_PROFILES[mode];
+
+  wrap.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">${scored.length} joueurs scorés · Moneyball ${profile.label}</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="addAllCSV()">+ TOUT AJOUTER</button>
+        <button class="btn btn-danger btn-sm" onclick="clearCSV()">✕ EFFACER</button>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>JOUEUR</th><th>SCORE MB</th>
+          ${profile.cols.map(c => `<th>${c}</th>`).join('')}
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sorted.map((d, i) => {
+          const tier = d.score >= 80 ? 'S' : d.score >= 65 ? 'A' : d.score >= 50 ? 'B' : d.score >= 35 ? 'C' : 'D';
+          const nom = d.row['Joueur'] || d.row['Nom'] || d.row['Name'] || Object.values(d.row)[0];
+          const barColor = tier==='S' ? 'var(--green)' : tier==='A' ? 'var(--accent2)' : tier==='B' ? 'var(--accent)' : 'var(--red)';
+          const safe = encodeURIComponent(JSON.stringify(d));
+          const dispCols = profile.display(d).map(c => `<td style="color:var(--muted);">${c.val ?? '—'}</td>`).join('');
+          return `<tr>
+            <td style="color:var(--muted);">${i+1}</td>
+            <td style="font-weight:500;">${nom}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="score-circle score-${tier}" style="width:32px;height:32px;font-size:13px;">${d.score}</span>
+                <div style="width:60px;height:4px;background:var(--border);border-radius:2px;">
+                  <div style="height:100%;width:${d.score}%;background:${barColor};border-radius:2px;"></div>
+                </div>
+              </div>
+            </td>
+            ${dispCols}
+            <td><button class="btn btn-ghost btn-sm" onclick="quickAddCSV(decodeURIComponent('${safe}'))">+</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-size:10px;color:var(--muted);letter-spacing:1px;">
+      FORMULE ${profile.label.toUpperCase()} : ${profile.hint}
+    </div>
+  `;
+  window._csvScored = scored;
+}
+
+function clearCSV() {
+  document.getElementById('csv-table-wrap').innerHTML = '';
+  document.getElementById('csv-cols').innerHTML = '—';
+  document.getElementById('csv-input').value = '';
+  window._csvScored = null;
+  showNotif('Import CSV effacé');
+}
+
+function quickAddCSV(raw) {
+  const d = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  const mode = d._profile || document.getElementById('csv-poste-mode').value;
+  const profile = CSV_PROFILES[mode];
+  const nom = d.row['Joueur'] || d.row['Nom'] || d.row['Name'] || Object.values(d.row)[0];
+  const poste = d.row['Poste'] || d.row['Position'] || profile.poste;
+  const age = parseInt(d.row['Âge'] || d.row['Age'] || '') || 0;
+  const tier = d.score >= 80 ? 'S' : d.score >= 65 ? 'A' : d.score >= 50 ? 'B' : d.score >= 35 ? 'C' : 'D';
+  state.shortlist.push({
+    id: Date.now(), nom, poste, age,
+    club: d.row['Club'] || d.row['Équipe'] || '—',
+    valeur: d.transfert || 0,
+    salaire: d.salaire || 0,
+    score: d.score, tier,
+    prio: 2, statut: 'cible',
+    notes: profile.notes(d),
+  });
+  saveState();
+  renderShortlist();
+  showNotif(`${nom} ajouté — Score ${d.score}`);
+}
+
+function addAllCSV() {
+  if (!window._csvScored || !window._csvScored.length) return;
+  window._csvScored.forEach(d => quickAddCSV(d));
+  showNotif(`${window._csvScored.length} joueurs ajoutés à la shortlist`);
+}
+
+// ===================== SHORTLIST =====================
+function addShortlist() {
+  const nom = document.getElementById('sl-nom').value.trim();
+  if (!nom) { showNotif('Nom requis', true); return; }
+  state.shortlist.push({
+    id: Date.now(),
+    nom, poste: document.getElementById('sl-poste').value,
+    age: parseInt(document.getElementById('sl-age').value)||0,
+    club: document.getElementById('sl-club').value||'—',
+    valeur: parseFloat(document.getElementById('sl-val').value)||0,
+    salaire: parseFloat(document.getElementById('sl-sal').value)||0,
+    score: parseInt(document.getElementById('sl-score').value)||null,
+    tier: getTier(parseInt(document.getElementById('sl-score').value)||0),
+    prio: parseInt(document.getElementById('sl-prio').value),
+    statut: document.getElementById('sl-statut').value,
+    notes: document.getElementById('sl-notes').value,
+  });
+  saveState();
+  renderShortlist();
+  closeModal('modal-add-shortlist');
+  showNotif(`${nom} ajouté à la shortlist`);
+}
+
+function getTier(score) {
+  return score >= 80 ? 'S' : score >= 65 ? 'A' : score >= 50 ? 'B' : score >= 35 ? 'C' : score > 0 ? 'D' : '—';
+}
+
+function renderShortlist() {
+  const filterPoste = document.getElementById('sl-filter-poste').value;
+  const filterPrio = document.getElementById('sl-filter-prio').value;
+  const search = document.getElementById('sl-search').value.toLowerCase();
+  let list = state.shortlist.filter(p => {
+    if (filterPoste && p.poste !== filterPoste) return false;
+    if (filterPrio && String(p.prio) !== filterPrio) return false;
+    if (search && !p.nom.toLowerCase().includes(search) && !p.club.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  list.sort((a,b) => a.prio - b.prio || (b.score||0) - (a.score||0));
+  const prioIcon = {1:'🔴',2:'🟡',3:'⚪'};
+  const statutLabel = {cible:'🎯 Cible',contact:'📞 Contact',negociation:'🤝 Négo',signe:'✅ Signé',echec:'❌ Échec'};
+  const tbody = document.getElementById('shortlist-body');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:40px;">Aucun joueur</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(p => `
+    <tr>
+      <td>${prioIcon[p.prio]||'⚪'}</td>
+      <td style="font-weight:500;">${p.nom}</td>
+      <td><span class="badge ${posteClass(p.poste)}">${p.poste}</span></td>
+      <td>${p.age||'—'}</td>
+      <td style="color:var(--muted);">${p.club}</td>
+      <td>${p.valeur ? p.valeur + ' M€' : '—'}</td>
+      <td>${p.salaire ? p.salaire + ' k€' : '—'}</td>
+      <td>${p.score != null ? `<span class="score-circle score-${p.tier}" style="width:32px;height:32px;font-size:14px;">${p.score}</span>` : '—'}</td>
+      <td><span style="font-size:10px;">${statutLabel[p.statut]||p.statut}</span></td>
+      <td style="color:var(--muted);font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.notes||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeShortlist(${p.id})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function removeShortlist(id) {
+  state.shortlist = state.shortlist.filter(p => p.id !== id);
+  saveState();
+  renderShortlist();
+  showNotif('Joueur retiré');
+}
+
+function clearShortlist() {
+  if (!state.shortlist.length) { showNotif('Shortlist déjà vide', true); return; }
+  // confirm() bloqué dans iframe — on utilise une notif avec undo
+  const backup = [...state.shortlist];
+  state.shortlist = [];
+  saveState();
+  renderShortlist();
+  // Notif avec possibilité d'annuler pendant 4s
+  const n = document.getElementById('notif');
+  n.innerHTML = `Shortlist vidée (${backup.length} joueurs) &nbsp;<button onclick="undoClearShortlist()" style="background:var(--surface2);border:1px solid var(--text);color:var(--text);padding:2px 8px;border-radius:3px;font-size:10px;cursor:pointer;font-family:'DM Mono',monospace;">ANNULER</button>`;
+  n.style.borderColor = 'var(--accent)';
+  n.style.color = 'var(--accent)';
+  n.classList.add('show');
+  window._shortlistBackup = backup;
+  clearTimeout(window._clearTimer);
+  window._clearTimer = setTimeout(() => {
+    n.classList.remove('show');
+    window._shortlistBackup = null;
+  }, 4000);
+}
+
+function undoClearShortlist() {
+  if (!window._shortlistBackup) return;
+  state.shortlist = window._shortlistBackup;
+  window._shortlistBackup = null;
+  clearTimeout(window._clearTimer);
+  saveState();
+  renderShortlist();
+  showNotif(`Restauré — ${state.shortlist.length} joueurs`);
+}
+
+function posteClass(poste) {
+  if (['GAP','GB'].includes(poste)) return 'badge-gk';
+  if (['DCA','DCP','AL','LOA'].includes(poste)) return 'badge-def';
+  if (['MdC','MD'].includes(poste)) return 'badge-mid';
+  return 'badge-att';
+}
+
+// ===================== COMPARE =====================
+function getComparePool(source) {
+  return source === 'effectif' ? (state.effectif || []) : state.shortlist;
+}
+
+function updateCompareSelects() {
+  ['a','b'].forEach(side => {
+    const source = document.getElementById(`cmp-${side}-source`).value;
+    const pool = getComparePool(source);
+    document.getElementById(`cmp-${side}`).innerHTML =
+      `<option value="">— Sélectionner —</option>` +
+      pool.map(p => `<option value="${p.id}">${p.nom} (${p.poste})</option>`).join('');
+  });
+  renderCompare();
+}
+
+function getPlayerFromPool(source, id) {
+  return getComparePool(source).find(p => String(p.id) === String(id));
+}
+
+function renderCompare() {
+  const srcA = document.getElementById('cmp-a-source').value;
+  const srcB = document.getElementById('cmp-b-source').value;
+  const idA  = document.getElementById('cmp-a').value;
+  const idB  = document.getElementById('cmp-b').value;
+  if (!idA || !idB) return;
+  const A = getPlayerFromPool(srcA, idA);
+  const B = getPlayerFromPool(srcB, idB);
+  if (!A || !B) return;
+
+  // Source tags
+  const tagA = srcA === 'effectif'
+    ? `<span class="tag-pret" style="font-size:10px;">👥 Effectif</span>`
+    : `<span class="tag-libre" style="font-size:10px;">⭐ Shortlist</span>`;
+  const tagB = srcB === 'effectif'
+    ? `<span class="tag-pret" style="font-size:10px;">👥 Effectif</span>`
+    : `<span class="tag-libre" style="font-size:10px;">⭐ Shortlist</span>`;
+  document.getElementById('cmp-a-tag').innerHTML = tagA;
+  document.getElementById('cmp-b-tag').innerHTML = tagB;
+
+  const fields = [
+    { key: 'score',   label: 'Score MB',      invert: false },
+    { key: 'age',     label: 'Âge',           invert: true },
+    { key: 'valeur',  label: 'Valeur (M€)',   invert: false },
+    { key: 'salaire', label: 'Salaire (k€)',  invert: true },
+  ];
+
+  const rows = fields.map(f => {
+    const va = A[f.key] || 0;
+    const vb = B[f.key] || 0;
+    const max = Math.max(va, vb, 1);
+    const aWins = f.invert ? (va > 0 && (va < vb || vb === 0)) : va > vb;
+    const tie = va === vb;
+    return `
+      <div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+          <span class="${tie ? '' : aWins ? 'compare-winner' : 'compare-loser'}">${va || '—'}</span>
+          <div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+            <div style="float:right;height:100%;width:${Math.round((va/max)*100)}%;background:${aWins||tie?'var(--accent2)':'var(--muted)'};border-radius:3px;"></div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:10px;color:var(--muted);letter-spacing:1px;">${f.label}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:${Math.round((vb/max)*100)}%;background:${(!aWins)||tie?'var(--red)':'var(--muted)'};border-radius:3px;"></div>
+          </div>
+          <span class="${tie ? '' : !aWins ? 'compare-winner' : 'compare-loser'}">${vb || '—'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Notes row if available
+  const notesRow = (A.notes || B.notes) ? `
+    <div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;padding:8px 0;">
+      <div style="font-size:10px;color:var(--muted);text-align:right;">${A.notes||'—'}</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);">Stats</div>
+      <div style="font-size:10px;color:var(--muted);">${B.notes||'—'}</div>
+    </div>` : '';
+
+  const scoreA = A.score || 0, scoreB = B.score || 0;
+  const tierA = A.tier || getTier(scoreA);
+  const tierB = B.tier || getTier(scoreB);
+
+  document.getElementById('compare-result').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-bottom:20px;">
+      <div style="text-align:center;">
+        <div class="score-circle score-${tierA}" style="width:56px;height:56px;font-size:22px;margin:0 auto 8px;">${scoreA||'?'}</div>
+        <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;">${A.nom}</div>
+        <span class="badge ${posteClass(A.poste)}">${A.poste}</span>
+        <div style="margin-top:6px;font-size:10px;color:var(--muted);">${srcA === 'effectif' ? '👥 Effectif actuel' : '⭐ Cible shortlist'}</div>
+      </div>
+      <div style="font-family:'Bebas Neue';font-size:28px;color:var(--muted);">VS</div>
+      <div style="text-align:center;">
+        <div class="score-circle score-${tierB}" style="width:56px;height:56px;font-size:22px;margin:0 auto 8px;">${scoreB||'?'}</div>
+        <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;">${B.nom}</div>
+        <span class="badge ${posteClass(B.poste)}">${B.poste}</span>
+        <div style="margin-top:6px;font-size:10px;color:var(--muted);">${srcB === 'effectif' ? '👥 Effectif actuel' : '⭐ Cible shortlist'}</div>
+      </div>
+    </div>
+    <div>${rows}</div>
+    ${notesRow}
+    <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--muted);">
+      ${scoreA > scoreB
+        ? `🏆 <strong style="color:var(--accent)">${A.nom}</strong> remporte la comparaison (+${scoreA - scoreB} pts)`
+        : scoreB > scoreA
+        ? `🏆 <strong style="color:var(--accent)">${B.nom}</strong> remporte la comparaison (+${scoreB - scoreA} pts)`
+        : '🤝 Égalité sur le score Moneyball'}
+    </div>
+  `;
+}
+
+// ===================== MERCATO =====================
+function addMercato() {
+  const nom = document.getElementById('mc-nom').value.trim();
+  if (!nom) { showNotif('Nom requis', true); return; }
+  const type = document.getElementById('mc-type').value;
+  const montant = parseFloat(document.getElementById('mc-montant').value)||0;
+  state.mercato.push({
+    id: Date.now(),
+    type, nom,
+    poste: document.getElementById('mc-poste').value,
+    age: parseInt(document.getElementById('mc-age').value)||0,
+    club: document.getElementById('mc-club').value||'—',
+    montant,
+    salaire: parseFloat(document.getElementById('mc-sal').value)||0,
+    date: document.getElementById('mc-date').value,
+    notes: document.getElementById('mc-notes').value,
+  });
+  saveState();
+  renderMercato();
+  updateHeaderBudget();
+  closeModal('modal-add-mercato');
+  showNotif(`Opération enregistrée`);
+}
+
+function renderMercato() {
+  const filter = document.getElementById('mc-filter').value;
+  let list = filter ? state.mercato.filter(m => m.type === filter) : state.mercato;
+  const tagMap = { achat: 'tag-achat', vente: 'tag-vente', pret: 'tag-pret', libre: 'tag-libre' };
+  const labelMap = { achat: 'Achat', vente: 'Vente', pret: 'Prêt IN', libre: 'Libre' };
+
+  let totalIn = 0, totalOut = 0;
+  state.mercato.forEach(m => {
+    if (m.type === 'vente') totalOut += m.montant;
+    else if (m.type === 'achat') totalIn += m.montant;
+  });
+
+  document.getElementById('mc-total-in').textContent = fmt(totalIn);
+  document.getElementById('mc-total-out').textContent = fmt(totalOut);
+  const balance = totalOut - totalIn;
+  const balEl = document.getElementById('mc-balance');
+  balEl.textContent = (balance >= 0 ? '+' : '') + fmt(balance);
+  balEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
+
+  const tbody = document.getElementById('mercato-body');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:40px;">Aucune opération</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(m => `
+    <tr>
+      <td><span class="${tagMap[m.type]}">${labelMap[m.type]}</span></td>
+      <td style="font-weight:500;">${m.nom}</td>
+      <td><span class="badge ${posteClass(m.poste)}">${m.poste}</span></td>
+      <td>${m.age||'—'}</td>
+      <td style="color:var(--muted);">${m.club}</td>
+      <td style="color:${m.type==='vente'?'var(--green)':'var(--red)'};">${m.montant ? (m.type==='vente'?'+':'-') + fmt(m.montant) : '—'}</td>
+      <td>${m.salaire ? m.salaire + ' k€' : '—'}</td>
+      <td style="color:var(--muted);">${m.date||'—'}</td>
+      <td style="color:var(--muted);font-size:11px;">${m.notes||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeMercato(${m.id})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function removeMercato(id) {
+  state.mercato = state.mercato.filter(m => m.id !== id);
+  saveState();
+  renderMercato();
+  updateHeaderBudget();
+  showNotif('Opération supprimée');
+}
+
+function fmt(n) { return n >= 1 ? n.toFixed(1) + ' M€' : (n*1000).toFixed(0) + ' k€'; }
+
+// ===================== BUDGET =====================
+function saveBudget() {
+  const val = parseFloat(document.getElementById('input-budget').value);
+  if (isNaN(val)) { showNotif('Valeur invalide', true); return; }
+  state.budget = val;
+  saveState();
+  updateHeaderBudget();
+  updateBudgetPage();
+  closeModal('modal-budget');
+  showNotif('Budget mis à jour');
+}
+
+function updateHeaderBudget() {
+  const spent = state.mercato.filter(m => m.type === 'achat' || m.type === 'libre').reduce((s,m) => s+m.montant, 0);
+  const rentré = state.mercato.filter(m => m.type === 'vente').reduce((s,m) => s+m.montant, 0);
+  const net = spent - rentré;
+  const avail = state.budget != null ? state.budget - net : null;
+
+  document.getElementById('hdr-budget').textContent = state.budget != null ? state.budget + ' M€' : '— M€';
+  document.getElementById('hdr-spent').textContent = fmt(net);
+  document.getElementById('hdr-avail').textContent = avail != null ? fmt(avail) : '— M€';
+  document.getElementById('hdr-avail').style.color = avail != null && avail < 0 ? 'var(--red)' : 'var(--green)';
+}
+
+function updateBudgetPage() {
+  const spent = state.mercato.filter(m => m.type === 'achat').reduce((s,m) => s+m.montant, 0);
+  const rentré = state.mercato.filter(m => m.type === 'vente').reduce((s,m) => s+m.montant, 0);
+  const avail = state.budget != null ? state.budget - spent + rentré : null;
+
+  document.getElementById('bgt-total').textContent = state.budget != null ? state.budget + ' M€' : '—';
+  document.getElementById('bgt-spent').textContent = fmt(spent);
+  document.getElementById('bgt-in').textContent = fmt(rentré);
+  document.getElementById('bgt-left').textContent = avail != null ? fmt(avail) : '—';
+  document.getElementById('bgt-left').style.color = avail != null && avail < 0 ? 'var(--red)' : 'var(--green)';
+  updateSalaires();
+}
+
+function updateSalaires() {
+  const budSal = parseFloat(document.getElementById('sal-budget').value) || 0;
+  const totalSal = state.mercato.filter(m => m.type === 'achat' || m.type === 'libre').reduce((s,m) => s + (m.salaire||0), 0);
+  const pct = budSal > 0 ? Math.min(Math.round((totalSal/budSal)*100), 100) : 0;
+  document.getElementById('sal-pct').textContent = pct + '%';
+  document.getElementById('sal-bar').style.width = pct + '%';
+  document.getElementById('sal-bar').style.background = pct > 85 ? 'var(--red)' : pct > 60 ? 'var(--accent)' : 'var(--green)';
+  document.getElementById('sal-detail').textContent = totalSal > 0 ? `Masse engagée (achats) : ${totalSal} k€/sem` : 'Enregistrez des joueurs dans le Mercato.';
+}
+
+function calcPrixVente() {
+  const vm = parseFloat(document.getElementById('pv-vm').value) || 0;
+  const score = parseFloat(document.getElementById('pv-score').value) || 0;
+  const age = parseFloat(document.getElementById('pv-age').value) || 0;
+  const contrat = parseFloat(document.getElementById('pv-contrat').value) || 0;
+  if (!vm) { document.getElementById('pv-result').innerHTML = ''; return; }
+
+  // Moneyball pricing formula
+  const scoreMult = score >= 80 ? 1.4 : score >= 65 ? 1.2 : score >= 50 ? 1.0 : score >= 35 ? 0.8 : 0.6;
+  const ageMult = age <= 22 ? 1.3 : age <= 25 ? 1.15 : age <= 28 ? 1.0 : age <= 32 ? 0.8 : 0.55;
+  const contratMult = contrat >= 3 ? 1.0 : contrat >= 2 ? 0.9 : contrat >= 1 ? 0.75 : 0.5;
+  const prix = vm * scoreMult * ageMult * contratMult;
+  const min = prix * 0.85, max = prix * 1.25;
+
+  document.getElementById('pv-result').innerHTML = `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:16px;">
+      <div style="font-family:'Bebas Neue';font-size:32px;color:var(--accent);letter-spacing:2px;">${prix.toFixed(1)} M€</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Fourchette : ${min.toFixed(1)} – ${max.toFixed(1)} M€</div>
+      <div style="font-size:10px;color:var(--muted);">Score ×${scoreMult} · Âge ×${ageMult} · Contrat ×${contratMult}</div>
+    </div>
+  `;
+}
+
+// ===================== FORMATION =====================
+const FORMATION_AVEC = [
+  { id: 'pr-adc', slots: [{ label: 'AdC', key: 'adc' }] },
+  { id: 'pr-atl', slots: [{ label: 'Atl G', key: 'atl-g' }, { label: 'Atl D', key: 'atl-d' }] },
+  { id: 'pr-mdc', slots: [{ label: 'MdC G', key: 'mdc-g' }, { label: 'MdC D', key: 'mdc-d' }] },
+  { id: 'pr-loa', slots: [{ label: 'LOA G', key: 'loa-g' }, { label: 'LOA D', key: 'loa-d' }] },
+  { id: 'pr-dc', slots: [{ label: 'DCA G', key: 'dca-g' }, { label: 'DCP C', key: 'dcp-c' }, { label: 'DCA D', key: 'dca-d' }] },
+  { id: 'pr-gap', slots: [{ label: 'GAP', key: 'gap' }] },
+];
+
+function updateFormationView() {
+  FORMATION_AVEC.forEach(row => {
+    const el = document.getElementById(row.id);
+    if (!el) return;
+    el.innerHTML = row.slots.map(s => {
+      const assigned = state.assignments[s.key];
+      const p = assigned ? state.shortlist.find(x => x.id == assigned) : null;
+      return `<div class="pitch-player ${p ? 'filled' : 'needed'}">
+        <div class="pitch-pos">${s.label}</div>
+        <div class="pitch-name">${p ? p.nom : '—'}</div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function openAssignModal() {
+  const allSlots = [
+    ...FORMATION_AVEC.flatMap(r => r.slots),
+    { label: 'GB', key: 'gb' },
+    { label: 'AL G', key: 'al-g' }, { label: 'AL D', key: 'al-d' },
+    { label: 'DC G', key: 'dc-g2' }, { label: 'DC C', key: 'dc-c2' }, { label: 'DC D', key: 'dc-d2' },
+    { label: 'MD G', key: 'md-g' }, { label: 'MD D', key: 'md-d' },
+    { label: 'Ail G', key: 'ail-g' }, { label: 'MO', key: 'mo' }, { label: 'Ail D', key: 'ail-d' },
+  ];
+  const opts = `<option value="">—</option>` + state.shortlist.map(p => `<option value="${p.id}">${p.nom} (${p.poste})</option>`).join('');
+  document.getElementById('assign-form').innerHTML = allSlots.map(s => `
+    <div class="field" style="display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;">
+      <label style="margin:0;">${s.label}</label>
+      <select id="assign-${s.key}" onchange="state.assignments['${s.key}']=this.value;saveState();updateFormationView();">${opts}</select>
+    </div>
+  `).join('');
+  // restore
+  allSlots.forEach(s => {
+    const el = document.getElementById('assign-' + s.key);
+    if (el && state.assignments[s.key]) el.value = state.assignments[s.key];
+  });
+}
+
+function saveAssignments() {
+  saveState();
+  updateFormationView();
+  closeModal('modal-assign');
+  showNotif('Formation sauvegardée');
+}
+
+// ===================== MODALS =====================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'modal-assign') openAssignModal();
+  if (id === 'modal-budget' && state.budget) document.getElementById('input-budget').value = state.budget;
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+// ===================== NOTIF =====================
+function showNotif(msg, isError = false) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.style.borderColor = isError ? 'var(--red)' : 'var(--green)';
+  n.style.color = isError ? 'var(--red)' : 'var(--green)';
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2500);
+}
+
+// ===================== EFFECTIF =====================
+function importEffectif(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const lines = text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) { showNotif('CSV vide ou invalide', true); return; }
+    const sep = lines[0].includes(';') ? ';' : ',';
+    const headers = lines[0].split(sep).map(h => h.trim().replace(/"/g,''));
+    const rows = lines.slice(1).map(l => {
+      const vals = l.split(sep).map(v => v.trim().replace(/"/g,''));
+      return Object.fromEntries(headers.map((h,i) => [h, vals[i]||'']));
+    });
+
+    // Score using selected profile
+    const mode = document.getElementById('eff-poste-mode').value;
+    const profile = CSV_PROFILES[mode];
+    const data = rows.map(r => ({ row: r, ...profile.extract(r) }));
+    const nouveaux = data.map(d => {
+      const score = scoreFromSeuils(d, profile.seuils);
+      const tier = score >= 80 ? 'S' : score >= 65 ? 'A' : score >= 50 ? 'B' : score >= 35 ? 'C' : 'D';
+      const nom = d.row['Joueur'] || d.row['Nom'] || d.row['Name'] || Object.values(d.row)[0];
+      const poste = d.row['Poste'] || d.row['Position'] || profile.poste;
+      const age = parseInt(d.row['Âge'] || d.row['Age'] || '') || 0;
+      return {
+        id: Date.now() + Math.random(),
+        nom, poste, age,
+        club: 'Paris FC',
+        valeur: d.transfert || 0,
+        salaire: d.salaire || 0,
+        score, tier,
+        _profile: mode,
+      };
+    });
+
+    // ACCUMULATE — ne pas écraser les imports précédents
+    if (!state.effectif) state.effectif = [];
+    state.effectif = [...state.effectif, ...nouveaux];
+
+    saveState();
+    renderEffectif();
+    renderEffectifCompare();
+
+    // Summary
+    const postes = {};
+    state.effectif.forEach(p => { postes[p.poste] = (postes[p.poste]||0)+1; });
+    document.getElementById('eff-summary').innerHTML =
+      `<strong style="color:var(--text)">${state.effectif.length} joueurs</strong> · ` +
+      Object.entries(postes).map(([k,v]) => `${k}: ${v}`).join(' · ');
+    document.getElementById('eff-csv-cols').innerHTML =
+      headers.map(h => `<span style="background:var(--surface2);padding:2px 6px;border-radius:3px;margin:2px;display:inline-block;">${h}</span>`).join('');
+
+    showNotif(`+${nouveaux.length} joueurs ajoutés (total : ${state.effectif.length})`);
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function renderEffectif() {
+  if (!state.effectif || !state.effectif.length) return;
+  const search  = (document.getElementById('eff-search')?.value || '').toLowerCase();
+  const fPoste  = document.getElementById('eff-filter-poste')?.value || '';
+  const sortBy  = document.getElementById('eff-sort')?.value || 'score';
+
+  let list = state.effectif.filter(p => {
+    if (fPoste && p.poste !== fPoste) return false;
+    if (search && !p.nom.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  list.sort((a, b) => {
+    if (sortBy === 'score')  return (b.score||0) - (a.score||0);
+    if (sortBy === 'nom')    return a.nom.localeCompare(b.nom);
+    if (sortBy === 'age')    return (a.age||0) - (b.age||0);
+    if (sortBy === 'valeur') return (b.valeur||0) - (a.valeur||0);
+    return 0;
+  });
+
+  // For each player, find if a shortlist player at same poste scores higher
+  const tbody = document.getElementById('effectif-body');
+  tbody.innerHTML = list.map((p, i) => {
+    const barColor = p.tier==='S' ? 'var(--green)' : p.tier==='A' ? 'var(--accent2)' : p.tier==='B' ? 'var(--accent)' : 'var(--red)';
+    const better = state.shortlist.filter(s =>
+      s.poste === p.poste && (s.score||0) > (p.score||0)
+    );
+    const vsTag = better.length > 0
+      ? `<span style="color:var(--accent);font-size:10px;">⬆ ${better.length} cible${better.length>1?'s':''} meilleure${better.length>1?'s':''}</span>`
+      : `<span style="color:var(--green);font-size:10px;">✓ Meilleur du poste</span>`;
+
+    return `<tr>
+      <td style="color:var(--muted);">${i+1}</td>
+      <td style="font-weight:500;">${p.nom}</td>
+      <td><span class="badge ${posteClass(p.poste)}">${p.poste}</span></td>
+      <td>${p.age||'—'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="score-circle score-${p.tier}" style="width:32px;height:32px;font-size:13px;">${p.score}</span>
+          <div style="width:60px;height:4px;background:var(--border);border-radius:2px;">
+            <div style="height:100%;width:${p.score}%;background:${barColor};border-radius:2px;"></div>
+          </div>
+        </div>
+      </td>
+      <td>${p.valeur ? p.valeur+' M€' : '—'}</td>
+      <td>${p.salaire ? p.salaire+' k€' : '—'}</td>
+      <td>${vsTag}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="compareEffectifVsShortlist('${p.nom}','${p.poste}',${p.score})" title="Voir les cibles meilleures">🔍</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  renderEffectifCompare();
+}
+
+function renderEffectifCompare() {
+  const el = document.getElementById('eff-compare-body');
+  if (!state.effectif || !state.effectif.length) return;
+
+  // Best score per poste in effectif
+  const bestByPoste = {};
+  state.effectif.forEach(p => {
+    if (!bestByPoste[p.poste] || (p.score||0) > bestByPoste[p.poste].score) {
+      bestByPoste[p.poste] = p;
+    }
+  });
+
+  // Shortlist players that beat the best at same poste
+  const upgrades = [];
+  state.shortlist.forEach(s => {
+    const best = bestByPoste[s.poste];
+    if (best && (s.score||0) > (best.score||0)) {
+      upgrades.push({ cible: s, actuel: best, gain: (s.score||0) - (best.score||0) });
+    }
+  });
+
+  if (!upgrades.length) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:11px;padding:12px 0;">Aucune cible en shortlist ne dépasse l'effectif actuel aux mêmes postes.</div>`;
+    return;
+  }
+
+  upgrades.sort((a,b) => b.gain - a.gain);
+  el.innerHTML = upgrades.map(u => `
+    <div style="display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span class="badge ${posteClass(u.cible.poste)}">${u.cible.poste}</span>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-weight:500;color:var(--text);">${u.cible.nom}</span>
+          <span class="score-circle score-${u.cible.tier}" style="width:26px;height:26px;font-size:11px;">${u.cible.score}</span>
+          <span style="color:var(--muted);font-size:11px;">remplace</span>
+          <span style="color:var(--muted);">${u.actuel.nom}</span>
+          <span class="score-circle score-${u.actuel.tier}" style="width:26px;height:26px;font-size:11px;">${u.actuel.score}</span>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:var(--green);font-family:'Bebas Neue';font-size:18px;">+${u.gain}</div>
+        <div style="font-size:9px;color:var(--muted);">pts</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function compareEffectifVsShortlist(nom, poste, score) {
+  const better = state.shortlist.filter(s => s.poste === poste && (s.score||0) > score);
+  if (!better.length) { showNotif(`Aucune cible meilleure que ${nom} au poste ${poste}`); return; }
+  switchTab('shortlist');
+  document.getElementById('sl-filter-poste').value = poste;
+  renderShortlist();
+  showNotif(`${better.length} cible(s) meilleures que ${nom} au poste ${poste}`);
+}
+
+function clearEffectif() {
+  state.effectif = [];
+  saveState();
+  document.getElementById('effectif-body').innerHTML =
+    `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px;">Importez votre effectif via CSV</td></tr>`;
+  document.getElementById('eff-csv-cols').innerHTML = '—';
+  document.getElementById('eff-summary').innerHTML = '—';
+  document.getElementById('eff-compare-body').innerHTML = 'Importez l\'effectif pour voir les opportunités d\'amélioration.';
+  document.getElementById('eff-csv-input').value = '';
+  showNotif('Effectif effacé');
+}
+
+// ===================== INIT =====================
+renderShortlist();
+renderMercato();
+updateHeaderBudget();
+updateFormationView();
+
+// Restore effectif on page load
+if (state.effectif && state.effectif.length) {
+  renderEffectif();
+  const postes = {};
+  state.effectif.forEach(p => { postes[p.poste] = (postes[p.poste]||0)+1; });
+  const colsEl = document.getElementById('eff-csv-cols');
+  if (colsEl) colsEl.innerHTML = '<span style="color:var(--green);font-size:11px;">✓ Effectif chargé depuis la sauvegarde</span>';
+  const sumEl = document.getElementById('eff-summary');
+  if (sumEl) sumEl.innerHTML =
+    `<strong style="color:var(--text)">${state.effectif.length} joueurs</strong> · ` +
+    Object.entries(postes).map(([k,v]) => `${k}: ${v}`).join(' · ');
+}
+</script>
+</body>
+</html>
